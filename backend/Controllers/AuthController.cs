@@ -43,8 +43,8 @@ namespace backend.Controllers
             user.Status = Status.Active;
             user.LastVisit = DateTime.UtcNow;
             user.Password = BCrypt.Net.BCrypt.HashPassword(password);
-            await UserService.Add(user);
-            var result = await UserService.Add(user);
+
+            var result = await UserService.AddUser(user);
             if (result.Object == null) return Conflict("Failed registration");
 
             return Ok(GetJWTToken(result));
