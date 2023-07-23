@@ -15,15 +15,14 @@ namespace backend.Services
               .Child("Users")
               .PostAsync(user);
         }
-        public static async Task<List<KeyValuePair<string, User>>?> GetUsers()
+        public static async Task<IEnumerable<UserBase>?> GetUsers()
         {
             var users = await firebaseClient
               .Child("Users")
-              .OnceAsync<User>();
+              .OnceAsync<UserBase>();
 
             return users?
-              .Select(x => new KeyValuePair<string, User>(x.Key, x.Object))
-              .ToList();
+              .Select(x => x.Object);
         }
         public static async Task UpdateUser(string userId, User user)
         {

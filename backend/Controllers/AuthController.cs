@@ -47,6 +47,9 @@ namespace backend.Controllers
             var result = await UserService.AddUser(user);
             if (result.Object == null) return Conflict("Failed registration");
 
+            user.Id = result.Key;
+            await UserService.UpdateUser(result.Key, user);
+
             return Ok(GetJWTToken(result));
         }
 
@@ -56,8 +59,6 @@ namespace backend.Controllers
             claims.Add(new Claim(ClaimTypes.PrimarySid, user.Key));
             claims.Add(new Claim(ClaimTypes.Email, user.Object.Email));
             claims.Add(new Claim(ClaimTypes.Role, user.Object.Role.ToString()));
-
-            Console.WriteLine(user.Object.Role.ToString());
 
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ConfigurationManager.AppSetting["JWT:Secret"]));
             var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
