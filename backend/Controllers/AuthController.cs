@@ -19,10 +19,13 @@ namespace backend.Controllers
             if (password.Length < 6) return BadRequest("Password less than 6 characters!");
             var addr = new System.Net.Mail.MailAddress(email);
             if (addr.Address != email) return BadRequest("Email not validate");
-            var result = await UserService.FindUser(email);
+            var result = await UserService.FindUserByEmail(email);
             if (result?.Object == null) return Conflict("User does not exist");
             User user = result.Object;
             if (!BCrypt.Net.BCrypt.Verify(password, user.Password)) return Conflict("Wrong data");
+
+            user.LastVisit = DateTime.UtcNow;
+            await UserService.UpdateUser(result.Key, user);
 
             return Ok(GetJWTToken(result));
         }
@@ -32,11 +35,15 @@ namespace backend.Controllers
             if (password.Length < 6) return BadRequest("Password less than 6 characters!");
             var addr = new System.Net.Mail.MailAddress(email);
             if (addr.Address != email) return BadRequest("Email not validate");
-            var find = await UserService.FindUser(email);
+            var find = await UserService.FindUserByEmail(email);
             if (find != null && find.Object != null) return Conflict("User exists");
             User user = new User();
             user.Email = email;
+            user.Role = Role.User;
+            user.Status = Status.Active;
+            user.LastVisit = DateTime.UtcNow;
             user.Password = BCrypt.Net.BCrypt.HashPassword(password);
+            await UserService.Add(user);
             var result = await UserService.Add(user);
             if (result.Object == null) return Conflict("Failed registration");
 
@@ -48,6 +55,9 @@ namespace backend.Controllers
             List<Claim> claims = new();
             claims.Add(new Claim(ClaimTypes.PrimarySid, user.Key));
             claims.Add(new Claim(ClaimTypes.Email, user.Object.Email));
+            claims.Add(new Claim(ClaimTypes.Role, user.Object.Role.ToString()));
+
+            Console.WriteLine(user.Object.Role.ToString());
 
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ConfigurationManager.AppSetting["JWT:Secret"]));
             var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);

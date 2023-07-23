@@ -13,7 +13,7 @@ namespace backend.Services
         {
             return await firebaseClient
               .Child("Users")
-              .PostAsync(user);
+              .PostAsync(user, false);
         }
         public static async Task<List<KeyValuePair<string, User>>?> GetUsers()
         {
@@ -39,7 +39,7 @@ namespace backend.Services
               .Child(id)
               .DeleteAsync();
         }
-        public static async Task<FirebaseObject<User>?> FindUser(string email)
+        public static async Task<FirebaseObject<User>?> FindUserByEmail(string email)
         {
             var users = await firebaseClient
               .Child("Users")
