@@ -59,6 +59,7 @@ namespace backend.Services
         {
             Message message = new Message();
             message.Text = text;
+            message.CreateTime = DateTime.UtcNow;
 
             var resultTwo = await firebaseClient
              .Child($"Messages/{recipientId}/{senderId}")

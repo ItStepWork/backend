@@ -27,6 +27,9 @@ namespace backend.Controllers
             User? sender = await UserService.FindUserByIdAsync(claimId.Value);
             if (sender == null) return NotFound("Sender not found!");
 
+            sender.LastVisit = DateTime.UtcNow;
+            await UserService.UpdateUserAsync(claimId.Value, sender);
+
             var result = await UserService.GetFriendsAsync(claimId.Value);
 
             return Ok(result);
@@ -40,6 +43,9 @@ namespace backend.Controllers
 
             User? sender = await UserService.FindUserByIdAsync(claimId.Value);
             if (sender == null) return NotFound("Sender not found!");
+
+            sender.LastVisit = DateTime.UtcNow;
+            await UserService.UpdateUserAsync(claimId.Value, sender);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
@@ -58,6 +64,9 @@ namespace backend.Controllers
 
             User? sender = await UserService.FindUserByIdAsync(claimId.Value);
             if (sender == null) return NotFound("Sender not found!");
+
+            sender.LastVisit = DateTime.UtcNow;
+            await UserService.UpdateUserAsync(claimId.Value, sender);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
@@ -80,6 +89,9 @@ namespace backend.Controllers
             User? sender = await UserService.FindUserByIdAsync(claimId.Value);
             if (sender == null) return NotFound("Sender not found!");
 
+            sender.LastVisit = DateTime.UtcNow;
+            await UserService.UpdateUserAsync(claimId.Value, sender);
+
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
 
@@ -97,6 +109,9 @@ namespace backend.Controllers
 
             User? sender = await UserService.FindUserByIdAsync(claimId.Value);
             if (sender == null) return NotFound("Sender not found!");
+
+            sender.LastVisit = DateTime.UtcNow;
+            await UserService.UpdateUserAsync(claimId.Value, sender);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");

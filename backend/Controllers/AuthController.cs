@@ -70,7 +70,7 @@ namespace backend.Controllers
                 signingCredentials: signinCredentials
             );
             var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-            return new JWTTokenResponse { Token = tokenString };
+            return new JWTTokenResponse { Token = tokenString, Id = user.Key };
         }
     }
 }
