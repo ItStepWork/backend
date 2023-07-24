@@ -19,13 +19,13 @@ namespace backend.Controllers
             if (password.Length < 6) return BadRequest("Password less than 6 characters!");
             var addr = new System.Net.Mail.MailAddress(email);
             if (addr.Address != email) return BadRequest("Email not validate");
-            var result = await UserService.FindUserByEmail(email);
+            var result = await UserService.FindUserByEmailAsync(email);
             if (result?.Object == null) return Conflict("User does not exist");
             User user = result.Object;
             if (!BCrypt.Net.BCrypt.Verify(password, user.Password)) return Conflict("Wrong data");
 
             user.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUser(result.Key, user);
+            await UserService.UpdateUserAsync(result.Key, user);
 
             return Ok(GetJWTToken(result));
         }
@@ -35,7 +35,7 @@ namespace backend.Controllers
             if (password.Length < 6) return BadRequest("Password less than 6 characters!");
             var addr = new System.Net.Mail.MailAddress(email);
             if (addr.Address != email) return BadRequest("Email not validate");
-            var find = await UserService.FindUserByEmail(email);
+            var find = await UserService.FindUserByEmailAsync(email);
             if (find != null && find.Object != null) return Conflict("User exists");
             User user = new User();
             user.Email = email;
@@ -44,11 +44,11 @@ namespace backend.Controllers
             user.LastVisit = DateTime.UtcNow;
             user.Password = BCrypt.Net.BCrypt.HashPassword(password);
 
-            var result = await UserService.AddUser(user);
+            var result = await UserService.AddUserAsync(user);
             if (result.Object == null) return Conflict("Failed registration");
 
             user.Id = result.Key;
-            await UserService.UpdateUser(result.Key, user);
+            await UserService.UpdateUserAsync(result.Key, user);
 
             return Ok(GetJWTToken(result));
         }
