@@ -14,6 +14,15 @@ namespace backend.Controllers
         [HttpGet("GetUsers")]
         public async Task<ActionResult> GetUsers()
         {
+            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
+            if (claimId == null) return NotFound("User not authorize!");
+
+            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
+            if (sender == null) return NotFound("Sender not found!");
+
+            sender.LastVisit = DateTime.UtcNow;
+            await UserService.UpdateUserAsync(claimId.Value, sender);
+
             IEnumerable<UserBase>? users = await UserService.GetUsersAsync();
             return Ok(users);
         }
