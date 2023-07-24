@@ -14,14 +14,8 @@ namespace backend.Controllers
         [HttpGet("GetUsers")]
         public async Task<ActionResult> GetUsers()
         {
-            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return NotFound("User not authorize!");
-
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return NotFound("Sender not found!");
-
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return NotFound(resultValidate.response);
 
             IEnumerable<UserBase>? users = await UserService.GetUsersAsync();
             return Ok(users);
@@ -30,16 +24,10 @@ namespace backend.Controllers
         [HttpGet("GetFriends")]
         public async Task<ActionResult> GetFriends()
         {
-            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return NotFound("User not authorize!");
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return NotFound(resultValidate.response);
 
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return NotFound("Sender not found!");
-
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
-
-            var result = await UserService.GetFriendsAsync(claimId.Value);
+            var result = await UserService.GetFriendsAsync(resultValidate.userId);
 
             return Ok(result);
         }
@@ -47,19 +35,13 @@ namespace backend.Controllers
         [HttpPost("SendMessage")]
         public async Task<ActionResult> SendMessage(string id, string text)
         {
-            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return NotFound("User not authorize!");
-
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return NotFound("Sender not found!");
-
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return NotFound(resultValidate.response);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
 
-            Message? message = await UserService.SendMessageAsync(claimId.Value, id, text);
+            Message? message = await UserService.SendMessageAsync(resultValidate.userId, id, text);
             if (message == null) return Conflict("Send message failed");
 
             return Ok("Ok");
@@ -68,23 +50,17 @@ namespace backend.Controllers
         [HttpPost("AddFriend")]
         public async Task<ActionResult> AddFriend(string id)
         {
-            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return NotFound("User not authorize!");
-
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return NotFound("Sender not found!");
-
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return NotFound(resultValidate.response);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
 
-            var result = await UserService.FindFriendAsync(claimId.Value, id);
+            var result = await UserService.FindFriendAsync(resultValidate.userId, id);
 
             if (result != null) return Conflict("Invitation already sent");
 
-            bool check = await UserService.AddFriendAsync(claimId.Value, id);
+            bool check = await UserService.AddFriendAsync(resultValidate.userId, id);
             if (!check) return Conflict("Add friend failed");
             else return Ok("Friend invite sent");
         }
@@ -92,19 +68,13 @@ namespace backend.Controllers
         [HttpPost("ConfirmFriend")]
         public async Task<ActionResult> ConfirmFriend(string id)
         {
-            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return NotFound("User not authorize!");
-
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return NotFound("Sender not found!");
-
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return NotFound(resultValidate.response);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
 
-            var result = await UserService.ConfirmFriendAsync(claimId.Value, id);
+            var result = await UserService.ConfirmFriendAsync(resultValidate.userId, id);
 
             if (!result) return Conflict("Confirm friend failed");
             else return Ok("Friend added");
@@ -113,21 +83,42 @@ namespace backend.Controllers
         [HttpDelete("RemoveFriend")]
         public async Task<ActionResult> RemoveFriend(string id)
         {
-            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return NotFound("User not authorize!");
-
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return NotFound("Sender not found!");
-
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return NotFound(resultValidate.response);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
 
-            await UserService.RemoveFriendAsync(claimId.Value, id);
+            await UserService.RemoveFriendAsync(resultValidate.userId, id);
 
             return Ok("Friend removed");
+        }
+        [Authorize]
+        [HttpPost("AddGroup")]
+        public async Task<ActionResult> AddGroup(string name)
+        {
+            (string response, string userId) resultValidate = await ValidationUser();
+            if(resultValidate.response != "") return NotFound(resultValidate.response);
+
+            Group group =new Group() {AdminId = resultValidate.userId , Name = name };
+            var result = await UserService.AddGroupAsync(group);
+            if (result.Object == null) return Conflict("Error");
+            group.Id = result.Key;
+            await UserService.UpdateGroupAsync(result.Key, group);
+            return Ok("Group added");
+        }
+
+        private async Task<(string, string)> ValidationUser()
+        {
+            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
+            if (claimId == null) return ("User not authorize!", "");
+
+            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
+            if (sender == null) return ("Sender not found!", "");
+
+            sender.LastVisit = DateTime.UtcNow;
+            await UserService.UpdateUserAsync(claimId.Value, sender);
+            return ("", claimId.Value);
         }
     }
 }

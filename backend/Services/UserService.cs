@@ -136,5 +136,19 @@ namespace backend.Services
             return friends?
               .Select(x => x.Object);
         }
+
+        public static async Task<FirebaseObject<Group>> AddGroupAsync(Group group)
+        {
+            return await firebaseClient
+              .Child("Groups")
+              .PostAsync(group);
+        }
+        public static async Task UpdateGroupAsync(string groupId, Group group)
+        {
+            await firebaseClient
+              .Child("Groups")
+              .Child(groupId)
+              .PutAsync(group);
+        }
     }
 }
