@@ -3,6 +3,7 @@ using backend.Services;
 using Firebase.Database;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -27,7 +28,7 @@ namespace backend.Controllers
             user.LastVisit = DateTime.UtcNow;
             await UserService.UpdateUserAsync(result.Key, user);
 
-            return Ok(GetJWTToken(result));
+            return Ok(GetResponse(result));
         }
         [HttpPost("Registration")]
         public async Task<ActionResult> Registration(string email, string password)
@@ -50,10 +51,44 @@ namespace backend.Controllers
             user.Id = result.Key;
             await UserService.UpdateUserAsync(result.Key, user);
 
-            return Ok(GetJWTToken(result));
+            return Ok(GetResponse(result));
         }
+        [HttpGet("SignIn")]
+        public async Task<ActionResult> SignIn(string email, string password)
+        {
+            if (password.Length < 6) return BadRequest("Password less than 6 characters!");
+            var addr = new System.Net.Mail.MailAddress(email);
+            if (addr.Address != email) return BadRequest("Email not validate");
+            var find = await UserService.FindUserByEmailAsync(email);
+            if (find != null && find.Object != null)
+            {
+                User user = find.Object;
+                if (!BCrypt.Net.BCrypt.Verify(password, user.Password)) return Conflict("Wrong data");
 
-        private static JWTTokenResponse GetJWTToken(FirebaseObject<User> user)
+                user.LastVisit = DateTime.UtcNow;
+                await UserService.UpdateUserAsync(find.Key, user);
+
+                return Ok(GetResponse(find));
+            }
+            else
+            {
+                User user = new User();
+                user.Email = email;
+                user.Role = Role.User;
+                user.Status = Status.Active;
+                user.LastVisit = DateTime.UtcNow;
+                user.Password = BCrypt.Net.BCrypt.HashPassword(password);
+
+                var result = await UserService.AddUserAsync(user);
+                if (result.Object == null) return Conflict("Failed registration");
+
+                user.Id = result.Key;
+                await UserService.UpdateUserAsync(result.Key, user);
+
+                return Ok(GetResponse(result));
+            }
+        }
+        private static Response GetResponse(FirebaseObject<User> user)
         {
             List<Claim> claims = new();
             claims.Add(new Claim(ClaimTypes.PrimarySid, user.Key));
@@ -70,7 +105,7 @@ namespace backend.Controllers
                 signingCredentials: signinCredentials
             );
             var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-            return new JWTTokenResponse { Token = tokenString, Id = user.Key };
+            return new Response(user.Object, tokenString);
         }
     }
 }
