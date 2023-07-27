@@ -17,7 +17,7 @@ namespace backend.Controllers
             (string response, string userId) resultValidate = await ValidationUser();
             if (resultValidate.response != "") return NotFound(resultValidate.response);
 
-            IEnumerable<UserBase>? users = await UserService.GetUsersAsync();
+            IEnumerable<UserBase>? users = await UserService.GetUsersAsync(resultValidate.userId);
             return Ok(users);
         }
         [Authorize]
