@@ -13,6 +13,11 @@ namespace backend.Models
             Role = userBase.Role;
             Status = userBase.Status;
             LastVisit = userBase.LastVisit;
+            FirstName = userBase.FirstName;
+            LastName = userBase.LastName;
+            Phone = userBase.Phone;
+            Gender = userBase.Gender;
+            FamilyStatus = userBase.FamilyStatus;
         }
     }
 }
