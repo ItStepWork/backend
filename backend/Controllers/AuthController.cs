@@ -35,7 +35,7 @@ namespace backend.Controllers
         [HttpPost("SignUp")]
         public async Task<ActionResult> SignUp(string email, string password)
         {
-            password = password.ToLower();
+            email = email.ToLower();
             if (password.Length < 6) return BadRequest("Password less than 6 characters!");
             var addr = new System.Net.Mail.MailAddress(email);
             if (addr.Address != email) return BadRequest("Email not validate");
