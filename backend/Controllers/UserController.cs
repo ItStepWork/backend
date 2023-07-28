@@ -108,6 +108,33 @@ namespace backend.Controllers
             return Ok("Group added");
         }
 
+        /*
+        [HttpPost("UpdateUser")]
+        public async Task<ActionResult> UpdateUser(string id, [FromBody] string data)
+        {
+            
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return NotFound(resultValidate.response);
+            
+        var user = await UserService.FindUserByIdAsync(id);
+
+            if (user != null)
+            {
+                user.BirthDay = new DateTime(1990, 03, 20);
+                user.FirstName = "Евгений";
+                user.LastName = "Богомолов";
+                user.Phone = "(063) 179 6377";
+                user.Gender = Gender.Male;
+                user.Role = Role.User;
+                user.Status = Status.Active;
+                user.FamilyStatus = "Не женат";
+            }
+            
+            await UserService.UpdateUserAsync(id, user);
+            return Ok("User is Updated");
+        }
+        
+       */
         private async Task<(string, string)> ValidationUser()
         {
             Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
