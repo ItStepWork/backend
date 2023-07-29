@@ -18,6 +18,8 @@ namespace backend.Models
             Phone = userBase.Phone;
             Gender = userBase.Gender;
             FamilyStatus = userBase.FamilyStatus;
+            Born = userBase.Born;
+            AboutMe = userBase.AboutMe;
         }
     }
 }
