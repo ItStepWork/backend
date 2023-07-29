@@ -2,6 +2,7 @@
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Security.Claims;
 
 namespace backend.Controllers
@@ -98,9 +99,9 @@ namespace backend.Controllers
         public async Task<ActionResult> AddGroup(string name)
         {
             (string response, string userId) resultValidate = await ValidationUser();
-            if(resultValidate.response != "") return NotFound(resultValidate.response);
+            if (resultValidate.response != "") return NotFound(resultValidate.response);
 
-            Group group =new Group() {AdminId = resultValidate.userId , Name = name };
+            Group group = new Group() { AdminId = resultValidate.userId, Name = name };
             var result = await UserService.AddGroupAsync(group);
             if (result.Object == null) return Conflict("Error");
             group.Id = result.Key;
@@ -108,33 +109,35 @@ namespace backend.Controllers
             return Ok("Group added");
         }
 
-        /*
+        [Authorize]
         [HttpPost("UpdateUser")]
-        public async Task<ActionResult> UpdateUser(string id, [FromBody] string data)
+        public async Task<ActionResult> UpdateUser(FormDataRequest data)
         {
-            
+            Console.WriteLine(JsonConvert.SerializeObject(data));
+
             (string response, string userId) resultValidate = await ValidationUser();
             if (resultValidate.response != "") return NotFound(resultValidate.response);
             
-        var user = await UserService.FindUserByIdAsync(id);
+            var user = await UserService.FindUserByIdAsync(resultValidate.userId);
 
             if (user != null)
             {
-                user.BirthDay = new DateTime(1990, 03, 20);
-                user.FirstName = "Евгений";
-                user.LastName = "Богомолов";
-                user.Phone = "(063) 179 6377";
-                user.Gender = Gender.Male;
-                user.Role = Role.User;
-                user.Status = Status.Active;
-                user.FamilyStatus = "Не женат";
+                //DateOnly born =  DateOnly.Parse(data.Born.ToString());
+                //user.Born = born.ToLongDateString();
+                user.FirstName = data.FirstName;
+                user.LastName = data.LastName;
+                user.Phone = data.Phone;
+                user.Gender = data.Gender;
+                user.Status = Status.Active;                                                                        
+                user.FamilyStatus = data.FamilyStatus;
+                user.AboutMe = data.AboutMe;
             }
             
-            await UserService.UpdateUserAsync(id, user);
+            await UserService.UpdateUserAsync(resultValidate.userId, user);
             return Ok("User is Updated");
         }
         
-       */
+       
         private async Task<(string, string)> ValidationUser()
         {
             Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
