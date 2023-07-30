@@ -48,6 +48,7 @@ namespace backend.Controllers
                 user.Role = Role.User;
                 user.Status = Status.Active;
                 user.LastVisit = DateTime.UtcNow;
+                //user.Joined = DateOnly.FromDateTime(DateTime.Now).ToLongDateString();
                 user.Password = BCrypt.Net.BCrypt.HashPassword(password);
 
                 var result = await UserService.AddUserAsync(user);
