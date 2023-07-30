@@ -111,7 +111,7 @@ namespace backend.Controllers
 
         [Authorize]
         [HttpPost("UpdateUser")]
-        public async Task<ActionResult> UpdateUser(FormDataRequest data)
+        public async Task<ActionResult> UpdateUser(User data)
         {
             Console.WriteLine(JsonConvert.SerializeObject(data));
 
@@ -122,8 +122,9 @@ namespace backend.Controllers
 
             if (user != null)
             {
-                //DateOnly born =  DateOnly.Parse(data.Born.ToString());
-                //user.Born = born.ToLongDateString();
+
+                DateOnly born = DateOnly.Parse(data.Born.ToString());
+                user.Born = born.ToLongDateString();       
                 user.FirstName = data.FirstName;
                 user.LastName = data.LastName;
                 user.Phone = data.Phone;
@@ -131,9 +132,11 @@ namespace backend.Controllers
                 user.Status = Status.Active;                                                                        
                 user.FamilyStatus = data.FamilyStatus;
                 user.AboutMe = data.AboutMe;
+            
             }
             
             await UserService.UpdateUserAsync(resultValidate.userId, user);
+            Console.WriteLine(JsonConvert.SerializeObject(user));
             return Ok("User is Updated");
         }
         
