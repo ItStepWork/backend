@@ -16,7 +16,7 @@ namespace backend.Controllers
         public async Task<ActionResult> GetUsers()
         {
             (string response, string userId) resultValidate = await ValidationUser();
-            if (resultValidate.response != "") return NotFound(resultValidate.response);
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
 
             IEnumerable<UserBase>? users = await UserService.GetUsersAsync(resultValidate.userId);
             return Ok(users);
@@ -26,7 +26,7 @@ namespace backend.Controllers
         public async Task<ActionResult> GetFriends()
         {
             (string response, string userId) resultValidate = await ValidationUser();
-            if (resultValidate.response != "") return NotFound(resultValidate.response);
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
 
             var result = await UserService.GetFriendsAsync(resultValidate.userId);
 
@@ -37,7 +37,7 @@ namespace backend.Controllers
         public async Task<ActionResult> SendMessage(string id, string text)
         {
             (string response, string userId) resultValidate = await ValidationUser();
-            if (resultValidate.response != "") return NotFound(resultValidate.response);
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
@@ -52,7 +52,7 @@ namespace backend.Controllers
         public async Task<ActionResult> AddFriend(string id)
         {
             (string response, string userId) resultValidate = await ValidationUser();
-            if (resultValidate.response != "") return NotFound(resultValidate.response);
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
@@ -70,7 +70,7 @@ namespace backend.Controllers
         public async Task<ActionResult> ConfirmFriend(string id)
         {
             (string response, string userId) resultValidate = await ValidationUser();
-            if (resultValidate.response != "") return NotFound(resultValidate.response);
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
@@ -85,7 +85,7 @@ namespace backend.Controllers
         public async Task<ActionResult> RemoveFriend(string id)
         {
             (string response, string userId) resultValidate = await ValidationUser();
-            if (resultValidate.response != "") return NotFound(resultValidate.response);
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
@@ -99,7 +99,7 @@ namespace backend.Controllers
         public async Task<ActionResult> AddGroup(string name)
         {
             (string response, string userId) resultValidate = await ValidationUser();
-            if (resultValidate.response != "") return NotFound(resultValidate.response);
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
 
             Group group = new Group() { AdminId = resultValidate.userId, Name = name };
             var result = await UserService.AddGroupAsync(group);
@@ -116,7 +116,7 @@ namespace backend.Controllers
             Console.WriteLine(JsonConvert.SerializeObject(data));
 
             (string response, string userId) resultValidate = await ValidationUser();
-            if (resultValidate.response != "") return NotFound(resultValidate.response);
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
             
             var user = await UserService.FindUserByIdAsync(resultValidate.userId);
 
