@@ -132,12 +132,14 @@ namespace backend.Controllers
                 user.Status = Status.Active;                                                                        
                 user.FamilyStatus = data.FamilyStatus;
                 user.AboutMe = data.AboutMe;
-            
+                await UserService.UpdateUserAsync(resultValidate.userId, user);
+                return Ok("User is Updated");
             }
-            
-            await UserService.UpdateUserAsync(resultValidate.userId, user);
-            Console.WriteLine(JsonConvert.SerializeObject(user));
-            return Ok("User is Updated");
+            else
+            {
+                return NotFound("User Not Found");
+            }
+                
         }
         
        
