@@ -19,7 +19,7 @@ namespace backend.Models
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Gender Gender { get; set; }
         public string? AboutMe { get; set; } 
-        public string? Live { get; set; }
+        public string? Location { get; set; }
         public string? Work { get; set; }
         public string? Joined { get; set; }
     }

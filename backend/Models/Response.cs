@@ -20,6 +20,9 @@ namespace backend.Models
             FamilyStatus = userBase.FamilyStatus;
             Born = userBase.Born;
             AboutMe = userBase.AboutMe;
+            Location = userBase.Location;
+            Work = userBase.Work;
+            Joined = userBase.Joined;
         }
     }
 }
