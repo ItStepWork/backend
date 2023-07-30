@@ -2,6 +2,7 @@
 {
     public class User : UserBase
     {
-        public string Password { get; set; }
+        
+        public string? Password { get; set; }
     }
 }
