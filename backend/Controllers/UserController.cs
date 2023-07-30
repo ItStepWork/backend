@@ -132,6 +132,8 @@ namespace backend.Controllers
                 user.Status = Status.Active;                                                                        
                 user.FamilyStatus = data.FamilyStatus;
                 user.AboutMe = data.AboutMe;
+                user.Location = data.Location;
+                user.Work = data.Work;
                 await UserService.UpdateUserAsync(resultValidate.userId, user);
                 return Ok("User is Updated");
             }
