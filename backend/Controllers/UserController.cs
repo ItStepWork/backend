@@ -122,7 +122,7 @@ namespace backend.Controllers
 
             if (user != null)
             {
-
+                // Update user
                 DateOnly born = DateOnly.Parse(data.Born.ToString());
                 user.Born = born.ToLongDateString();       
                 user.FirstName = data.FirstName;
