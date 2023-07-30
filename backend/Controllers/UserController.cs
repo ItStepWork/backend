@@ -111,36 +111,40 @@ namespace backend.Controllers
 
         [Authorize]
         [HttpPost("UpdateUser")]
+        [Authorize]
+        [HttpPost("UpdateUser")]
         public async Task<ActionResult> UpdateUser(User data)
         {
             Console.WriteLine(JsonConvert.SerializeObject(data));
 
             (string response, string userId) resultValidate = await ValidationUser();
             if (resultValidate.response != "") return NotFound(resultValidate.response);
-            
+
             var user = await UserService.FindUserByIdAsync(resultValidate.userId);
 
             if (user != null)
             {
                 // Update user
                 DateOnly born = DateOnly.Parse(data.Born.ToString());
-                user.Born = born.ToLongDateString();       
+                user.Born = born.ToLongDateString();
                 user.FirstName = data.FirstName;
                 user.LastName = data.LastName;
                 user.Phone = data.Phone;
                 user.Gender = data.Gender;
-                user.Status = Status.Active;                                                                        
+                user.Status = Status.Active;
                 user.FamilyStatus = data.FamilyStatus;
                 user.AboutMe = data.AboutMe;
-            
+                await UserService.UpdateUserAsync(resultValidate.userId, user);
+                return Ok("User is Updated");
             }
-            
-            await UserService.UpdateUserAsync(resultValidate.userId, user);
-            Console.WriteLine(JsonConvert.SerializeObject(user));
-            return Ok("User is Updated");
+            else
+            {
+                return NotFound("User Not Found");
+            }
+
         }
-        
-       
+
+
         private async Task<(string, string)> ValidationUser()
         {
             Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
