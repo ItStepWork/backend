@@ -143,6 +143,14 @@ namespace backend.Services
               .Child("Groups")
               .PostAsync(group);
         }
+        public static async Task<IEnumerable<Group>?> GetGroupsAsync(string userId)
+        {
+            var groups = await firebaseClient
+              .Child("Groups")
+              .OnceAsync<Group>();
+
+            return groups?.Select(x => x.Object);
+        }
         public static async Task UpdateGroupAsync(string groupId, Group group)
         {
             await firebaseClient

@@ -96,17 +96,27 @@ namespace backend.Controllers
         }
         [Authorize]
         [HttpPost("AddGroup")]
-        public async Task<ActionResult> AddGroup(string name)
+        public async Task<ActionResult> AddGroup(Group group)
         {
+            Console.WriteLine(JsonConvert.SerializeObject(group));
             (string response, string userId) resultValidate = await ValidationUser();
             if (resultValidate.response != "") return Unauthorized(resultValidate.response);
-
-            Group group = new Group() { AdminId = resultValidate.userId, Name = name };
+            group.AdminId = resultValidate.userId;
             var result = await UserService.AddGroupAsync(group);
             if (result.Object == null) return Conflict("Error");
             group.Id = result.Key;
             await UserService.UpdateGroupAsync(result.Key, group);
             return Ok("Group added");
+        }
+        [Authorize]
+        [HttpGet("GetGroups")]
+        public async Task<ActionResult> GetGroups()
+        {
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
+
+            IEnumerable<Group>? groups = await UserService.GetGroupsAsync(resultValidate.userId);
+            return Ok(groups);
         }
 
         [Authorize]
