@@ -33,21 +33,6 @@ namespace backend.Controllers
             return Ok(result);
         }
         [Authorize]
-        [HttpPost("SendMessage")]
-        public async Task<ActionResult> SendMessage(string id, string text)
-        {
-            (string response, string userId) resultValidate = await ValidationUser();
-            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
-
-            User? recipient = await UserService.FindUserByIdAsync(id);
-            if (recipient == null) return NotFound("Recipient not found!");
-
-            Message? message = await UserService.SendMessageAsync(resultValidate.userId, id, text);
-            if (message == null) return Conflict("Send message failed");
-
-            return Ok("Ok");
-        }
-        [Authorize]
         [HttpPost("AddFriend")]
         public async Task<ActionResult> AddFriend(string id)
         {
@@ -154,6 +139,21 @@ namespace backend.Controllers
 
         }
         [Authorize]
+        [HttpPost("SendMessage")]
+        public async Task<ActionResult> SendMessage(string id, string text)
+        {
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
+
+            User? recipient = await UserService.FindUserByIdAsync(id);
+            if (recipient == null) return NotFound("Recipient not found!");
+
+            Message? message = await UserService.SendMessageAsync(resultValidate.userId, id, text);
+            if (message == null) return Conflict("Send message failed");
+
+            return Ok("Ok");
+        }
+        [Authorize]
         [HttpGet("GetDialogs")]
         public async Task<ActionResult> GetDialogs()
         {
@@ -176,7 +176,6 @@ namespace backend.Controllers
             var result = await UserService.GetMessages(resultValidate.userId, id);
             return Ok(result);
         }
-
 
         private async Task<(string, string)> ValidationUser()
         {

@@ -55,23 +55,6 @@ namespace backend.Services
 
             return user;
         }
-        public static async Task<Message?> SendMessageAsync(string senderId, string recipientId, string text)
-        {
-            Message message = new Message();
-            message.Text = text;
-            message.CreateTime = DateTime.UtcNow;
-
-            var resultTwo = await firebaseClient
-             .Child($"Messages/{recipientId}/{senderId}")
-             .PostAsync(message);
-
-            var resultOne = await firebaseClient
-             .Child($"Messages/{senderId}/{recipientId}")
-             .PostAsync(message);
-
-            if (resultOne?.Object != null && resultTwo?.Object != null) return message;
-            else return null;
-        }
         public static async Task<bool> AddFriendAsync(string senderId, string recipientId)
         {
             Friend recipient = new Friend();
@@ -158,6 +141,12 @@ namespace backend.Services
               .Child(groupId)
               .PutAsync(group);
         }
+        public static async Task UpdateMessageAsync(string senderId, string recipientId, string messageId, Message message)
+        {
+            await firebaseClient
+             .Child($"Messages/{senderId}/{recipientId}/{messageId}")
+             .PutAsync(message);
+        }
         public static async Task<IEnumerable<Dialog>> GetDialogs(string userId)
         {
             var dialogs = await firebaseClient.Child($"Messages/{userId}")
@@ -173,7 +162,42 @@ namespace backend.Services
                 .OnceAsync<Message>();
 
             var result = dialogs.Select(x => x.Object);
+
+            var unread = dialogs.Where(x => x.Object.Status == MessageStatus.Unread && x.Object.SenderId != userId);
+            if (unread?.Count() > 0)
+            {
+                foreach (var message in unread)
+                {
+                    message.Object.Status = MessageStatus.Read;
+                    await UpdateMessageAsync(userId, friendId, message.Key, message.Object);
+                    await UpdateMessageAsync(friendId, userId, message.Key, message.Object);
+                }
+            }
+
             return result;
         }
+        public static async Task<Message?> SendMessageAsync(string senderId, string recipientId, string text)
+        {
+            Message message = new Message();
+            message.Text = text;
+            message.CreateTime = DateTime.UtcNow;
+            message.SenderId = senderId;
+            message.Status = MessageStatus.Unread;
+
+            var result = await firebaseClient
+             .Child($"Messages/{recipientId}/{senderId}")
+             .PostAsync(message);
+
+            if (result?.Object != null)
+            {
+                message.Id = result.Key;
+
+                await UpdateMessageAsync(senderId, recipientId, message.Id, message);
+                await UpdateMessageAsync(recipientId, senderId, message.Id, message);
+                return message;
+            }
+            else return null;
+        }
+
     }
 }
