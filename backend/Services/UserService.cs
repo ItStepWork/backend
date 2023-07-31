@@ -150,5 +150,22 @@ namespace backend.Services
               .Child(groupId)
               .PutAsync(group);
         }
+        public static async Task<IEnumerable<Dialog>> GetDialogs(string userId)
+        {
+            var dialogs = await firebaseClient.Child($"Messages/{userId}")
+                .OnceAsync<IDictionary<string, Message>>();
+
+            var users = await GetUsersAsync(userId);
+            var result = dialogs.Select(x => new Dialog() { User = users?.FirstOrDefault(u => u.Id == x.Key), LastMessage = x.Object.LastOrDefault().Value });
+            return result;
+        }
+        public static async Task<IEnumerable<Message>> GetMessages(string userId, string friendId)
+        {
+            var dialogs = await firebaseClient.Child($"Messages/{userId}/{friendId}")
+                .OnceAsync<Message>();
+
+            var result = dialogs.Select(x => x.Object);
+            return result;
+        }
     }
 }

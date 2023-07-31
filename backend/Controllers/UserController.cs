@@ -141,10 +141,33 @@ namespace backend.Controllers
             {
                 return NotFound("User Not Found");
             }
-                
+
         }
-        
-       
+        [Authorize]
+        [HttpGet("GetDialogs")]
+        public async Task<ActionResult> GetDialogs()
+        {
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
+
+            var result = await UserService.GetDialogs(resultValidate.userId);
+            return Ok(result);
+        }
+        [Authorize]
+        [HttpGet("GetMessages")]
+        public async Task<ActionResult> GetMessages(string id)
+        {
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
+
+            User? recipient = await UserService.FindUserByIdAsync(id);
+            if (recipient == null) return NotFound("Recipient not found!");
+
+            var result = await UserService.GetMessages(resultValidate.userId, id);
+            return Ok(result);
+        }
+
+
         private async Task<(string, string)> ValidationUser()
         {
             Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
