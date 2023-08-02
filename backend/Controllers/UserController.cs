@@ -90,6 +90,7 @@ namespace backend.Controllers
             var result = await UserService.AddGroupAsync(group);
             if (result.Object == null) return Conflict("Error");
             group.Id = result.Key;
+            group.Users.Add(resultValidate.userId,true);
             await UserService.UpdateGroupAsync(result.Key, group);
             return Ok("Group added");
         }
@@ -100,8 +101,21 @@ namespace backend.Controllers
             (string response, string userId) resultValidate = await ValidationUser();
             if (resultValidate.response != "") return Unauthorized(resultValidate.response);
 
-            IEnumerable<Group>? groups = await UserService.GetGroupsAsync(resultValidate.userId);
+            IEnumerable<Group>? groups = await UserService.GetGroupsAsync();
             return Ok(groups);
+        }
+        [Authorize]
+        [HttpPost("JoinGroup")]
+        public async Task<ActionResult> JoinGroup(string id)
+        {
+            (string response, string userId) resultValidate = await ValidationUser();
+            if (resultValidate.response != "") return Unauthorized(resultValidate.response);
+            Group? group = await UserService.GetGroupByIdAsync(id);
+            if (group == null) return NotFound("Group Not Found!");
+            group.Users.Add(resultValidate.userId,group.Audience == Audience.Private? false:true);
+            //await Console.Out.WriteLineAsync(group);
+            await UserService.UpdateGroupAsync(id, group);
+            return Ok("Request has been sent");
         }
 
         [Authorize]

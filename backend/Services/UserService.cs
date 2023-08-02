@@ -1,6 +1,7 @@
 ﻿using backend.Models;
 using Firebase.Database;
 using Firebase.Database.Query;
+using Newtonsoft.Json;
 
 namespace backend.Services
 {
@@ -126,13 +127,19 @@ namespace backend.Services
               .Child("Groups")
               .PostAsync(group);
         }
-        public static async Task<IEnumerable<Group>?> GetGroupsAsync(string userId)
+        public static async Task<IEnumerable<Group>?> GetGroupsAsync()
         {
             var groups = await firebaseClient
               .Child("Groups")
               .OnceAsync<Group>();
 
             return groups?.Select(x => x.Object);
+        }
+        public static async Task<Group?> GetGroupByIdAsync(string id)
+        {
+            var groupStr = await firebaseClient
+                .Child($"Groups/{id}").OnceAsJsonAsync();
+            return JsonConvert.DeserializeObject<Group>(groupStr);
         }
         public static async Task UpdateGroupAsync(string groupId, Group group)
         {

@@ -10,5 +10,6 @@ namespace backend.Models
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Audience Audience { get; set; }
         public string? Description { get; set; }
+        public Dictionary<string,bool> Users { get; set; }= new Dictionary<string,bool>();
     }
 }
