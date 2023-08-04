@@ -161,16 +161,16 @@ namespace backend.Controllers
         }
         [Authorize]
         [HttpPost("SendMessage")]
-        public async Task<ActionResult> SendMessage(string id, string text)
+        public async Task<ActionResult> SendMessage([FromForm]MessageData data)
         {
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            User? recipient = await UserService.FindUserByIdAsync(id);
+            User? recipient = await UserService.FindUserByIdAsync(data.Id);
             if (recipient == null) return NotFound("Recipient not found!");
 
-            Message? message = await UserService.SendMessageAsync(resultValidate.user.Id, id, text);
-            if (message == null) return Conflict("Send message failed");
+            Message? message = await UserService.SendMessageAsync(resultValidate.user.Id, data);
+            if (message == null || message.Id == null) return Conflict("Send message failed");
 
             return Ok("Ok");
         }

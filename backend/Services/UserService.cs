@@ -1,7 +1,9 @@
 ﻿using backend.Models;
 using Firebase.Database;
 using Firebase.Database.Query;
+using Firebase.Storage;
 using Newtonsoft.Json;
+using System.IO;
 
 namespace backend.Services
 {
@@ -9,6 +11,7 @@ namespace backend.Services
     {
         private static string firebaseDatabaseUrl = "https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/";
         private static readonly FirebaseClient firebaseClient = new FirebaseClient(firebaseDatabaseUrl);
+        private static readonly FirebaseStorage firebaseStorage = new FirebaseStorage("database-50f39.appspot.com");
 
         public static async Task<FirebaseObject<User>> AddUserAsync(User user)
         {
@@ -183,28 +186,42 @@ namespace backend.Services
 
             return result;
         }
-        public static async Task<Message?> SendMessageAsync(string senderId, string recipientId, string text)
+        public static async Task<Message?> SendMessageAsync(string senderId, MessageData data)
         {
             Message message = new Message();
-            message.Text = text;
+            message.Text = data.Text;
             message.CreateTime = DateTime.UtcNow;
             message.SenderId = senderId;
             message.Status = MessageStatus.Unread;
 
             var result = await firebaseClient
-             .Child($"Messages/{recipientId}/{senderId}")
+             .Child($"Messages/{data.Id}/{senderId}")
              .PostAsync(message);
 
             if (result?.Object != null)
             {
                 message.Id = result.Key;
 
-                await UpdateMessageAsync(senderId, recipientId, message.Id, message);
-                await UpdateMessageAsync(recipientId, senderId, message.Id, message);
+                if(data.File != null)
+                {
+                    string? link = await SaveFileAsync(data.File, message.Id);
+                    message.Link = link;
+                }
+
+                await UpdateMessageAsync(senderId, data.Id, message.Id, message);
+                await UpdateMessageAsync(data.Id, senderId, message.Id, message);
                 return message;
             }
             else return null;
         }
-
+        public static async Task<string?> SaveFileAsync(IFormFile file, string name)
+        {
+            var stream = file.OpenReadStream();
+            var task = await firebaseStorage
+                 .Child("Messages")
+                 .Child(name + ".png")
+                 .PutAsync(stream);
+            return task;
+        }
     }
 }

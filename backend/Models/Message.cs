@@ -7,6 +7,7 @@ namespace backend.Models
         public string? Id { get; set; }
         public string? SenderId { get; set; }
         public string? Text { get; set; }
+        public string? Link { get; set; }
         public DateTime CreateTime { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public MessageStatus Status { get; set; }
