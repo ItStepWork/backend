@@ -222,10 +222,26 @@ namespace backend.Controllers
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var url = await UserService.SaveAvatarAsync(file, resultValidate.user.Id);
+            var url = await UserService.SaveFileAsync(file, "Avatars", resultValidate.user.Id);
             if (url == null) return Conflict("Save avatar failed");
 
             resultValidate.user.AvatarUrl = url;
+
+            await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
+
+            return Ok(resultValidate.user);
+        }
+        [Authorize]
+        [HttpPost("SaveBackground")]
+        public async Task<ActionResult> SaveBackground(IFormFile file)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var url = await UserService.SaveFileAsync(file, "Backgrounds", resultValidate.user.Id);
+            if (url == null) return Conflict("Save background failed");
+
+            resultValidate.user.BackgroundUrl = url;
 
             await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
 

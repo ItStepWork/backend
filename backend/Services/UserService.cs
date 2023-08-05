@@ -217,7 +217,7 @@ namespace backend.Services
 
                 if(data.File != null)
                 {
-                    string? link = await SaveFileAsync(data.File, message.Id);
+                    string? link = await SaveFileAsync(data.File, "Messages", message.Id);
                     message.Link = link;
                 }
 
@@ -227,20 +227,11 @@ namespace backend.Services
             }
             else return null;
         }
-        public static async Task<string?> SaveFileAsync(IFormFile file, string name)
+        public static async Task<string?> SaveFileAsync(IFormFile file, string child, string name)
         {
             var stream = file.OpenReadStream();
             var task = await firebaseStorage
-                 .Child("Messages")
-                 .Child(name + ".png")
-                 .PutAsync(stream);
-            return task;
-        }
-        public static async Task<string?> SaveAvatarAsync(IFormFile file, string name)
-        {
-            var stream = file.OpenReadStream();
-            var task = await firebaseStorage
-                 .Child("Avatars")
+                 .Child(child)
                  .Child(name + ".png")
                  .PutAsync(stream);
             return task;
