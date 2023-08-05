@@ -138,6 +138,13 @@ namespace backend.Services
 
             return groups?.Select(x => x.Object);
         }
+        public static async Task<Group> GetGroupAsync(string id)
+        {
+            var group = await firebaseClient
+              .Child($"Groups")
+              .Child(id).OnceSingleAsync<Group>();
+            return group;
+        }
         public static async Task<Group?> GetGroupByIdAsync(string id)
         {
             var groupStr = await firebaseClient
