@@ -236,5 +236,14 @@ namespace backend.Services
                  .PutAsync(stream);
             return task;
         }
+        public static async Task<string?> SaveAvatarAsync(IFormFile file, string name)
+        {
+            var stream = file.OpenReadStream();
+            var task = await firebaseStorage
+                 .Child("Avatars")
+                 .Child(name + ".png")
+                 .PutAsync(stream);
+            return task;
+        }
     }
 }

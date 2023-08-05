@@ -2,7 +2,6 @@
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System.Security.Claims;
 
 namespace backend.Controllers
@@ -215,6 +214,22 @@ namespace backend.Controllers
 
             var result = await UserService.GetMessages(resultValidate.user.Id, id);
             return Ok(result);
+        }
+        [Authorize]
+        [HttpPost("SaveAvatar")]
+        public async Task<ActionResult> SaveAvatar(IFormFile file)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var url = await UserService.SaveAvatarAsync(file, resultValidate.user.Id);
+            if (url == null) return Conflict("Save avatar failed");
+
+            resultValidate.user.AvatarUrl = url;
+
+            await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
+
+            return Ok(resultValidate.user);
         }
 
         private async Task<(string, User?)> ValidationUser()

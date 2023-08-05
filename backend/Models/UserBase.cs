@@ -22,5 +22,6 @@ namespace backend.Models
         public string? Location { get; set; }
         public string? Work { get; set; }
         public string? Joined { get; set; }
+        public string? AvatarUrl { get; set; }
     }
 }
