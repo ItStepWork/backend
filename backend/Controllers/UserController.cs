@@ -185,6 +185,16 @@ namespace backend.Controllers
             return Ok(result);
         }
         [Authorize]
+        [HttpDelete("RemoveDialog")]
+        public async Task<ActionResult> RemoveDialog(string id)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await UserService.RemoveDialogAsync(resultValidate.user.Id, id);
+            return Ok("Ok");
+        }
+        [Authorize]
         [HttpGet("GetMessages")]
         public async Task<ActionResult> GetMessages(string id)
         {
