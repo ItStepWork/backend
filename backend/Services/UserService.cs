@@ -3,25 +3,23 @@ using Firebase.Database;
 using Firebase.Database.Query;
 using Firebase.Storage;
 using Newtonsoft.Json;
-using System.IO;
 
 namespace backend.Services
 {
     public static class UserService
     {
-        private static string firebaseDatabaseUrl = "https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/";
-        private static readonly FirebaseClient firebaseClient = new FirebaseClient(firebaseDatabaseUrl);
+        private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
         private static readonly FirebaseStorage firebaseStorage = new FirebaseStorage("database-50f39.appspot.com");
 
         public static async Task<FirebaseObject<User>> AddUserAsync(User user)
         {
-            return await firebaseClient
+            return await firebaseDatabase
               .Child("Users")
               .PostAsync(user);
         }
         public static async Task<IEnumerable<UserBase>?> GetUsersAsync(string userId)
         {
-            var users = await firebaseClient
+            var users = await firebaseDatabase
               .Child("Users")
               .OnceAsync<UserBase>();
 
@@ -30,21 +28,21 @@ namespace backend.Services
         }
         public static async Task UpdateUserAsync(string userId, User user)
         {
-            await firebaseClient
+            await firebaseDatabase
               .Child("Users")
               .Child(userId)
               .PutAsync(user);
         }
         public static async Task RemoveUserAsync(string userId)
         {
-            await firebaseClient
+            await firebaseDatabase
               .Child("Users")
               .Child(userId)
               .DeleteAsync();
         }
         public static async Task<FirebaseObject<User>?> FindUserByEmailAsync(string email)
         {
-            var users = await firebaseClient
+            var users = await firebaseDatabase
               .Child("Users")
               .OnceAsync<User>();
 
@@ -53,7 +51,7 @@ namespace backend.Services
         }
         public static async Task<User?> FindUserByIdAsync(string userId)
         {
-            var user = await firebaseClient
+            var user = await firebaseDatabase
               .Child("Users")
               .Child(userId).OnceSingleAsync<User>();
 
@@ -73,14 +71,14 @@ namespace backend.Services
         }
         public static async Task<Friend?> FindFriendAsync(string senderId, string recipientId)
         {
-            return await firebaseClient
+            return await firebaseDatabase
               .Child($"Friends/{senderId}")
               .Child(recipientId)
               .OnceSingleAsync<Friend>();
         }
         private static async Task UpdateFriendAsync(string senderId, string recipientId, Friend friend)
         {
-            await firebaseClient
+            await firebaseDatabase
               .Child("Friends")
               .Child(senderId)
               .Child(recipientId)
@@ -88,12 +86,12 @@ namespace backend.Services
         }
         public static async Task RemoveFriendAsync(string senderId, string recipientId)
         {
-            await firebaseClient
+            await firebaseDatabase
               .Child("Friends")
               .Child(senderId)
               .Child(recipientId)
               .DeleteAsync();
-            await firebaseClient
+            await firebaseDatabase
               .Child("Friends")
               .Child(recipientId)
               .Child(senderId)
@@ -116,7 +114,7 @@ namespace backend.Services
         }
         public static async Task<IEnumerable<Friend>?> GetFriendsAsync(string id)
         {
-            var friends = await firebaseClient
+            var friends = await firebaseDatabase
               .Child($"Friends/{id}")
               .OnceAsync<Friend>();
 
@@ -126,13 +124,13 @@ namespace backend.Services
 
         public static async Task<FirebaseObject<Group>> AddGroupAsync(Group group)
         {
-            return await firebaseClient
+            return await firebaseDatabase
               .Child("Groups")
               .PostAsync(group);
         }
         public static async Task<IEnumerable<Group>?> GetGroupsAsync()
         {
-            var groups = await firebaseClient
+            var groups = await firebaseDatabase
               .Child("Groups")
               .OnceAsync<Group>();
 
@@ -140,33 +138,33 @@ namespace backend.Services
         }
         public static async Task<Group> GetGroupAsync(string id)
         {
-            var group = await firebaseClient
+            var group = await firebaseDatabase
               .Child($"Groups")
               .Child(id).OnceSingleAsync<Group>();
             return group;
         }
         public static async Task<Group?> GetGroupByIdAsync(string id)
         {
-            var groupStr = await firebaseClient
+            var groupStr = await firebaseDatabase
                 .Child($"Groups/{id}").OnceAsJsonAsync();
             return JsonConvert.DeserializeObject<Group>(groupStr);
         }
         public static async Task UpdateGroupAsync(string groupId, Group group)
         {
-            await firebaseClient
+            await firebaseDatabase
               .Child("Groups")
               .Child(groupId)
               .PutAsync(group);
         }
         public static async Task UpdateMessageAsync(string senderId, string recipientId, string messageId, Message message)
         {
-            await firebaseClient
+            await firebaseDatabase
              .Child($"Messages/{senderId}/{recipientId}/{messageId}")
              .PutAsync(message);
         }
         public static async Task<IEnumerable<Dialog>> GetDialogs(string userId)
         {
-            var dialogs = await firebaseClient.Child($"Messages/{userId}")
+            var dialogs = await firebaseDatabase.Child($"Messages/{userId}")
                 .OnceAsync<IDictionary<string, Message>>();
 
             var users = await GetUsersAsync(userId);
@@ -175,13 +173,13 @@ namespace backend.Services
         }
         public static async Task RemoveDialogAsync(string userId, string dialogId)
         {
-            await firebaseClient
+            await firebaseDatabase
              .Child($"Messages/{userId}/{dialogId}")
              .DeleteAsync();
         }
         public static async Task<IEnumerable<Message>> GetMessages(string userId, string friendId)
         {
-            var dialogs = await firebaseClient.Child($"Messages/{userId}/{friendId}")
+            var dialogs = await firebaseDatabase.Child($"Messages/{userId}/{friendId}")
                 .OnceAsync<Message>();
 
             var result = dialogs.Select(x => x.Object);
@@ -207,7 +205,7 @@ namespace backend.Services
             message.SenderId = senderId;
             message.Status = MessageStatus.Unread;
 
-            var result = await firebaseClient
+            var result = await firebaseDatabase
              .Child($"Messages/{data.Id}/{senderId}")
              .PostAsync(message);
 
