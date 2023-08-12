@@ -40,6 +40,26 @@ namespace backend.Controllers
 
             return Ok("Ok");
         }
+        [Authorize]
+        [HttpPost("SendComment")]
+        public async Task<ActionResult> SendCommentPhoto(string userId, string photoId, string text)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await GalleryService.SendCommentPhotoAsync(resultValidate.user.Id, userId, photoId, text);
+            return Ok("Ok");
+        }
+        [Authorize]
+        [HttpPost("SetLike")]
+        public async Task<ActionResult> SetLikePhoto(string userId, string photoId)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await GalleryService.SetLikePhotoAsync(resultValidate.user.Id, userId, photoId);
+            return Ok("Ok");
+        }
         private async Task<(string, User?)> ValidationUser()
         {
             Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
