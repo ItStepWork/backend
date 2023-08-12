@@ -156,6 +156,15 @@ namespace backend.Services
               .Child(groupId)
               .PutAsync(group);
         }
+        public static async Task RemuveUserFromGroupAsync(string groupId, string userId)
+        {
+            await firebaseDatabase
+              .Child("Groups")
+              .Child(groupId)
+              .Child("Users")
+              .Child(userId)
+              .DeleteAsync();
+        }
         public static async Task UpdateMessageAsync(string senderId, string recipientId, string messageId, Message message)
         {
             await firebaseDatabase

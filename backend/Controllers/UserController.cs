@@ -99,9 +99,11 @@ namespace backend.Controllers
         {
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
             IEnumerable<Group>? groups = await UserService.GetGroupsAsync();
-            return Ok(groups);
+            var sort = groups.ToList();
+            sort.Sort((y,x)=> Convert.ToInt32(x.AdminId.Equals(resultValidate.user.Id)) - Convert.ToInt32(y.AdminId.Equals(resultValidate.user.Id)));
+            sort.Sort((y, x) => Convert.ToInt32(x.Users.ContainsKey(resultValidate.user.Id)) - Convert.ToInt32(y.Users.ContainsKey(resultValidate.user.Id)));
+            return Ok(sort);
         }
         [Authorize]
         [HttpGet("GetGroup")]
@@ -121,10 +123,19 @@ namespace backend.Controllers
 
             Group? group = await UserService.GetGroupByIdAsync(id);
             if (group == null) return NotFound("Group Not Found!");
-            group.Users.Add(resultValidate.user.Id,group.Audience == Audience.Private? false:true);
+            group.Users[resultValidate.user.Id] = group.Audience == Audience.Private? false:true;
             //await Console.Out.WriteLineAsync(group);
             await UserService.UpdateGroupAsync(id, group);
             return Ok("Request has been sent");
+        }
+        [Authorize]
+        [HttpDelete("LeaveGroup")]
+        public async Task<ActionResult> LeaveGroup(string id)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            await UserService.RemuveUserFromGroupAsync(id, resultValidate.user.Id);
+            return Ok("You leave the group");
         }
 
         [Authorize]
