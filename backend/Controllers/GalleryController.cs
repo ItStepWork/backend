@@ -41,7 +41,7 @@ namespace backend.Controllers
             return Ok("Ok");
         }
         [Authorize]
-        [HttpPost("SendComment")]
+        [HttpPost("SendCommentPhoto")]
         public async Task<ActionResult> SendCommentPhoto(string userId, string photoId, string text)
         {
             (string response, User? user) resultValidate = await ValidationUser();
@@ -51,7 +51,7 @@ namespace backend.Controllers
             return Ok("Ok");
         }
         [Authorize]
-        [HttpPost("SetLike")]
+        [HttpPost("SetLikePhoto")]
         public async Task<ActionResult> SetLikePhoto(string userId, string photoId)
         {
             (string response, User? user) resultValidate = await ValidationUser();
