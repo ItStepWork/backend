@@ -17,6 +17,14 @@ namespace backend.Services
               .Child("Users")
               .PostAsync(user);
         }
+        public static async Task<UserBase?> GetUserAsync(string userId)
+        {
+            var user = await firebaseDatabase
+              .Child("Users")
+              .Child(userId).OnceSingleAsync<UserBase>();
+
+            return user;
+        }
         public static async Task<IEnumerable<UserBase>?> GetUsersAsync(string userId)
         {
             var users = await firebaseDatabase
