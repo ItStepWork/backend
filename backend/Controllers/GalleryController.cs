@@ -60,6 +60,38 @@ namespace backend.Controllers
             await GalleryService.SetLikePhotoAsync(resultValidate.user.Id, userId, photoId);
             return Ok("Ok");
         }
+        [Authorize]
+        [HttpPost("SetAvatar")]
+        public async Task<ActionResult> SetAvatar(string url)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            resultValidate.user.AvatarUrl = url;
+            await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
+            return Ok("Ok");
+        }
+        [Authorize]
+        [HttpPost("SetBackground")]
+        public async Task<ActionResult> SetBackground(string url)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            resultValidate.user.BackgroundUrl = url;
+            await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
+            return Ok("Ok");
+        }
+        [Authorize]
+        [HttpDelete("RemovePhoto")]
+        public async Task<ActionResult> RemovePhoto(string id)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await GalleryService.RemovePhotoAsync(resultValidate.user.Id, id);
+            return Ok("Ok");
+        }
         private async Task<(string, User?)> ValidationUser()
         {
             Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
