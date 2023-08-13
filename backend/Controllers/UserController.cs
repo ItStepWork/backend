@@ -14,9 +14,10 @@ namespace backend.Controllers
         [HttpGet("GetUser")]
         public async Task<ActionResult> GetUser(string id)
         {
+            
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
+            
             var user = await UserService.GetUserAsync(id);
             return Ok(user);
         }
@@ -24,6 +25,7 @@ namespace backend.Controllers
         [HttpGet("GetUsers")]
         public async Task<ActionResult> GetUsers()
         {
+
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
