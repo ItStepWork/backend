@@ -2,29 +2,14 @@
 
 namespace backend.Models
 {
-    public class Response : UserBase
+    public class Response
     {
         public string? AccessToken { get; set; }
+        public UserBase User { get; set; }
         public Response(UserBase userBase, string? accessToken)
         {
             AccessToken = accessToken;
-            Id = userBase.Id;
-            Email = userBase.Email;
-            Role = userBase.Role;
-            Status = userBase.Status;
-            LastVisit = userBase.LastVisit;
-            FirstName = userBase.FirstName;
-            LastName = userBase.LastName;
-            Phone = userBase.Phone;
-            Gender = userBase.Gender;
-            FamilyStatus = userBase.FamilyStatus;
-            Born = userBase.Born;
-            AboutMe = userBase.AboutMe;
-            Location = userBase.Location;
-            Work = userBase.Work;
-            Joined = userBase.Joined;
-            AvatarUrl = userBase.AvatarUrl;
-            BackgroundUrl = userBase.BackgroundUrl;
+            User = userBase;
         }
     }
 }
