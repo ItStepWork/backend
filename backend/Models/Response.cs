@@ -23,6 +23,8 @@ namespace backend.Models
             Location = userBase.Location;
             Work = userBase.Work;
             Joined = userBase.Joined;
+            AvatarUrl = userBase.AvatarUrl;
+            BackgroundUrl = userBase.BackgroundUrl;
         }
     }
 }
