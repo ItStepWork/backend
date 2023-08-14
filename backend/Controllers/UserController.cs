@@ -197,8 +197,17 @@ namespace backend.Controllers
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var url = await UserService.SaveFileAsync(file, "Avatars", resultValidate.user.Id);
+
+            var photo = await GalleryService.AddPhotoAsync(resultValidate.user.Id);
+
+            var url = await UserService.SaveFileAsync(file, "Photos", photo.Key);
             if (url == null) return Conflict("Save avatar failed");
+
+            Photo result = photo.Object;
+            result.Id = photo.Key;
+            result.Url = url;
+
+            await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, photo.Key, result);
 
             resultValidate.user.AvatarUrl = url;
 
@@ -213,8 +222,16 @@ namespace backend.Controllers
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var url = await UserService.SaveFileAsync(file, "Backgrounds", resultValidate.user.Id);
+            var photo = await GalleryService.AddPhotoAsync(resultValidate.user.Id);
+
+            var url = await UserService.SaveFileAsync(file, "Photos", photo.Key);
             if (url == null) return Conflict("Save background failed");
+
+            Photo result = photo.Object;
+            result.Id = photo.Key;
+            result.Url = url;
+
+            await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, photo.Key, result);
 
             resultValidate.user.BackgroundUrl = url;
 
