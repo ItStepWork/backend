@@ -191,54 +191,6 @@ namespace backend.Controllers
             return Ok("User is Updated");
         }
         [Authorize]
-        [HttpPost("SendMessage")]
-        public async Task<ActionResult> SendMessage([FromForm]MessageData data)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            User? recipient = await UserService.FindUserByIdAsync(data.Id);
-            if (recipient == null) return NotFound("Recipient not found!");
-
-            Message? message = await UserService.SendMessageAsync(resultValidate.user.Id, data);
-            if (message == null || message.Id == null) return Conflict("Send message failed");
-
-            return Ok("Ok");
-        }
-        [Authorize]
-        [HttpGet("GetDialogs")]
-        public async Task<ActionResult> GetDialogs()
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            var result = await UserService.GetDialogs(resultValidate.user.Id);
-            return Ok(result);
-        }
-        [Authorize]
-        [HttpDelete("RemoveDialog")]
-        public async Task<ActionResult> RemoveDialog(string id)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            await UserService.RemoveDialogAsync(resultValidate.user.Id, id);
-            return Ok("Ok");
-        }
-        [Authorize]
-        [HttpGet("GetMessages")]
-        public async Task<ActionResult> GetMessages(string id)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            User? recipient = await UserService.FindUserByIdAsync(id);
-            if (recipient == null) return NotFound("Recipient not found!");
-
-            var result = await UserService.GetMessages(resultValidate.user.Id, id);
-            return Ok(result);
-        }
-        [Authorize]
         [HttpPost("SaveAvatar")]
         public async Task<ActionResult> SaveAvatar(IFormFile file)
         {
