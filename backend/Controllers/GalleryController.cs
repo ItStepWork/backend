@@ -42,43 +42,43 @@ namespace backend.Controllers
         }
         [Authorize]
         [HttpPost("SendCommentPhoto")]
-        public async Task<ActionResult> SendCommentPhoto(string userId, string photoId, string text)
+        public async Task<ActionResult> SendCommentPhoto(GalleryRequest request)
         {
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            await GalleryService.SendCommentPhotoAsync(resultValidate.user.Id, userId, photoId, text);
+            await GalleryService.SendCommentPhotoAsync(resultValidate.user.Id, request.UserId, request.PhotoId, request.Text);
             return Ok("Ok");
         }
         [Authorize]
         [HttpPost("SetLikePhoto")]
-        public async Task<ActionResult> SetLikePhoto(string userId, string photoId)
+        public async Task<ActionResult> SetLikePhoto(GalleryRequest request)
         {
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            await GalleryService.SetLikePhotoAsync(resultValidate.user.Id, userId, photoId);
+            await GalleryService.SetLikePhotoAsync(resultValidate.user.Id, request.UserId, request.PhotoId);
             return Ok("Ok");
         }
         [Authorize]
         [HttpPost("SetAvatar")]
-        public async Task<ActionResult> SetAvatar(string url)
+        public async Task<ActionResult> SetAvatar(GalleryRequest request)
         {
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            resultValidate.user.AvatarUrl = url;
+            resultValidate.user.AvatarUrl = request.Url;
             await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
             return Ok("Ok");
         }
         [Authorize]
         [HttpPost("SetBackground")]
-        public async Task<ActionResult> SetBackground(string url)
+        public async Task<ActionResult> SetBackground(GalleryRequest request)
         {
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            resultValidate.user.BackgroundUrl = url;
+            resultValidate.user.BackgroundUrl = request.Url;
             await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
             return Ok("Ok");
         }
