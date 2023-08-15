@@ -2,15 +2,13 @@
 
 namespace backend.Models
 {
-    public class Group
+    public class GroupRequest
     {
         public string? Id { get; set; }
-        public string? PictureUrl { get; set; }
-        public string? AdminId { get; set; }
         public string? Name { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Audience Audience { get; set; }
         public string? Description { get; set; }
-        public Dictionary<string,bool>? Users { get; set; }= new Dictionary<string,bool>();
+        public IFormFile? File { get; set; }
     }
 }
