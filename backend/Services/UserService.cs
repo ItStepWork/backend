@@ -130,49 +130,6 @@ namespace backend.Services
               .Select(x => x.Object);
         }
 
-        public static async Task<FirebaseObject<Group>> AddGroupAsync(Group group)
-        {
-            return await firebaseDatabase
-              .Child("Groups")
-              .PostAsync(group);
-        }
-        public static async Task<IEnumerable<Group>?> GetGroupsAsync()
-        {
-            var groups = await firebaseDatabase
-              .Child("Groups")
-              .OnceAsync<Group>();
-
-            return groups?.Select(x => x.Object);
-        }
-        public static async Task<Group> GetGroupAsync(string id)
-        {
-            var group = await firebaseDatabase
-              .Child($"Groups")
-              .Child(id).OnceSingleAsync<Group>();
-            return group;
-        }
-        public static async Task<Group?> GetGroupByIdAsync(string id)
-        {
-            var groupStr = await firebaseDatabase
-                .Child($"Groups/{id}").OnceAsJsonAsync();
-            return JsonConvert.DeserializeObject<Group>(groupStr);
-        }
-        public static async Task UpdateGroupAsync(string groupId, Group group)
-        {
-            await firebaseDatabase
-              .Child("Groups")
-              .Child(groupId)
-              .PutAsync(group);
-        }
-        public static async Task RemuveUserFromGroupAsync(string groupId, string userId)
-        {
-            await firebaseDatabase
-              .Child("Groups")
-              .Child(groupId)
-              .Child("Users")
-              .Child(userId)
-              .DeleteAsync();
-        }
         public static async Task<string?> SaveFileAsync(IFormFile file, string child, string name)
         {
             var stream = file.OpenReadStream();

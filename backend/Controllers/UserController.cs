@@ -90,65 +90,6 @@ namespace backend.Controllers
 
             return Ok("Friend removed");
         }
-        [Authorize]
-        [HttpPost("AddGroup")]
-        public async Task<ActionResult> AddGroup(Group group)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            group.AdminId = resultValidate.user.Id;
-            var result = await UserService.AddGroupAsync(group);
-            if (result.Object == null) return Conflict("Error");
-            group.Id = result.Key;
-            group.Users.Add(resultValidate.user.Id, true);
-            await UserService.UpdateGroupAsync(result.Key, group);
-            return Ok("Group added");
-        }
-        [Authorize]
-        [HttpGet("GetGroups")]
-        public async Task<ActionResult> GetGroups()
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-            IEnumerable<Group>? groups = await UserService.GetGroupsAsync();
-            var sort = groups.ToList();
-            sort.Sort((y,x)=> Convert.ToInt32(x.AdminId.Equals(resultValidate.user.Id)) - Convert.ToInt32(y.AdminId.Equals(resultValidate.user.Id)));
-            sort.Sort((y, x) => Convert.ToInt32(x.Users.ContainsKey(resultValidate.user.Id)) - Convert.ToInt32(y.Users.ContainsKey(resultValidate.user.Id)));
-            return Ok(sort);
-        }
-        [Authorize]
-        [HttpGet("GetGroup")]
-        public async Task<ActionResult> GetGroup(string id)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-            var group = await UserService.GetGroupAsync(id);
-            return Ok(group);
-        }
-        [Authorize]
-        [HttpPost("JoinGroup")]
-        public async Task<ActionResult> JoinGroup(string id)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            Group? group = await UserService.GetGroupByIdAsync(id);
-            if (group == null) return NotFound("Group Not Found!");
-            group.Users[resultValidate.user.Id] = group.Audience == Audience.Private? false:true;
-            //await Console.Out.WriteLineAsync(group);
-            await UserService.UpdateGroupAsync(id, group);
-            return Ok("Request has been sent");
-        }
-        [Authorize]
-        [HttpDelete("LeaveGroup")]
-        public async Task<ActionResult> LeaveGroup(string id)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-            await UserService.RemuveUserFromGroupAsync(id, resultValidate.user.Id);
-            return Ok("You leave the group");
-        }
 
         [Authorize]
         [HttpPost("UpdateUser")]
