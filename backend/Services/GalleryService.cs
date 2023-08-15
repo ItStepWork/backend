@@ -10,11 +10,11 @@ namespace backend.Services
 
         public static async Task<IEnumerable<Photo>?> GetPhotosAsync(string userId)
         {
-            var users = await firebaseDatabase
+            var result = await firebaseDatabase
               .Child($"Photos/{userId}")
               .OnceAsync<Photo>();
 
-            return users?.Select(x => x.Object);
+            return result?.Select(x => x.Object);
         }
         public static async Task<FirebaseObject<Photo>> AddPhotoAsync(string userId)
         {
@@ -70,6 +70,26 @@ namespace backend.Services
               .Child(userId)
               .Child(photoId)
               .PutAsync(photo);
+        }
+        public static async Task<IEnumerable<Album>?> GetAlbumsAsync(string userId)
+        {
+            var result = await firebaseDatabase
+              .Child($"Albums/{userId}")
+              .OnceAsync<Album>();
+
+            return result?.Select(x => x.Object);
+        }
+        public static async Task<FirebaseObject<Album>> AddAlbumAsync(string userId)
+        {
+            return await firebaseDatabase
+              .Child($"Albums/{userId}")
+              .PostAsync(new Album());
+        }
+        public static async Task UpdateAlbumAsync(string userId, string albumId, Album album)
+        {
+            await firebaseDatabase
+              .Child($"Albums/{userId}/{albumId}")
+              .PutAsync(album);
         }
     }
 }

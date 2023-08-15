@@ -2,6 +2,7 @@
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System.Security.Claims;
 
 namespace backend.Controllers
@@ -91,6 +92,55 @@ namespace backend.Controllers
 
             await GalleryService.RemovePhotoAsync(resultValidate.user.Id, id);
             return Ok("Ok");
+        }
+        [Authorize]
+        [HttpGet("GetAlbums")]
+        public async Task<ActionResult> GetAlbums()
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var photos = await GalleryService.GetAlbumsAsync(resultValidate.user.Id);
+            return Ok(photos);
+        }
+        [Authorize]
+        [HttpPost("AddAlbum")]
+        public async Task<ActionResult> AddAlbum([FromForm] GalleryRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Name)) return BadRequest("Name is null or empty");
+
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var album = await GalleryService.AddAlbumAsync(resultValidate.user.Id);
+
+            List<Photo> Photos = new(); 
+
+            if(request?.Files?.Length > 0)
+            {
+                foreach (var file in request.Files)
+                {
+                    string id = Guid.NewGuid().ToString("N");
+                    var url = await UserService.SaveFileAsync(file, "Albums", id);
+                    if (url != null)
+                    {
+                        Photo photo = new();
+                        photo.Id = id;
+                        photo.Url = url;
+                        Photos.Add(photo);
+                    }
+                }
+            }
+
+            if(Photos.Count > 0)
+            {
+                album.Object.Id = album.Key;
+                album.Object.Name = request.Name;
+                album.Object.Photos = Photos.ToDictionary(photo=> photo.Id);
+                await GalleryService.UpdateAlbumAsync(resultValidate.user.Id, album.Key, album.Object);
+                return Ok("Ok");
+            }
+            else return Conflict("Add photos failed");
         }
         private async Task<(string, User?)> ValidationUser()
         {
