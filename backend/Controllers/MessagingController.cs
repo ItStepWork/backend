@@ -12,7 +12,7 @@ namespace backend.Controllers
     {
         [Authorize]
         [HttpPost("SendMessage")]
-        public async Task<ActionResult> SendMessage([FromForm] MessageData data)
+        public async Task<ActionResult> SendMessage([FromForm] MessageRequest data)
         {
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
