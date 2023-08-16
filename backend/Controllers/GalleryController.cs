@@ -22,6 +22,28 @@ namespace backend.Controllers
             return Ok(photos);
         }
         [Authorize]
+        [HttpGet("GetPhoto")]
+        public async Task<ActionResult> GetPhoto(string userId, string photoId)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var result = await GalleryService.GetPhotoAsync(userId, photoId);
+            return Ok(result);
+        }
+        [Authorize]
+        [HttpGet("GetPhotosById")]
+        public async Task<ActionResult> GetPhotosById(string userId, string filesId)
+        {
+            string[]? files = JsonConvert.DeserializeObject<string[]>(filesId);
+            if (files == null || files.Length < 1) return BadRequest("Data is null or empty");
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var result = await GalleryService.GetPhotosAsync(userId, files);
+            return Ok(result);
+        }
+        [Authorize]
         [HttpPost("AddPhoto")]
         public async Task<ActionResult> AddPhoto(IFormFile file)
         {
@@ -114,20 +136,21 @@ namespace backend.Controllers
 
             var album = await GalleryService.AddAlbumAsync(resultValidate.user.Id);
 
-            List<Photo> Photos = new(); 
+            List<string> Photos = new(); 
 
             if(request?.Files?.Length > 0)
             {
                 foreach (var file in request.Files)
                 {
                     string id = Guid.NewGuid().ToString("N");
-                    var url = await UserService.SaveFileAsync(file, "Albums", id);
+                    var url = await UserService.SaveFileAsync(file, "Photos", id);
                     if (url != null)
                     {
                         Photo photo = new();
                         photo.Id = id;
                         photo.Url = url;
-                        Photos.Add(photo);
+                        await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, id, photo);
+                        Photos.Add(id);
                     }
                 }
             }
@@ -136,7 +159,7 @@ namespace backend.Controllers
             {
                 album.Object.Id = album.Key;
                 album.Object.Name = request.Name;
-                album.Object.Photos = Photos.ToDictionary(photo=> photo.Id);
+                album.Object.Photos = Photos;
                 await GalleryService.UpdateAlbumAsync(resultValidate.user.Id, album.Key, album.Object);
                 return Ok("Ok");
             }

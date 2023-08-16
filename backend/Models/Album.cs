@@ -4,6 +4,6 @@
     {
         public string Id { get; set; } = String.Empty;
         public string Name { get; set; }
-        public Dictionary<string, Photo> Photos { get; set; } = new Dictionary<string, Photo>();
+        public List<string> Photos { get; set; } = new();
     }
 }
