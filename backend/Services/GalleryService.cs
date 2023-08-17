@@ -16,13 +16,13 @@ namespace backend.Services
 
             return result?.Select(x => x.Object);
         }
-        public static async Task<IEnumerable<Photo>?> GetPhotosAsync(string userId, string[] photos)
+        public static async Task<IEnumerable<Photo>?> GetPhotosAsync(string userId, string albumId)
         {
             var result = await firebaseDatabase
               .Child($"Photos/{userId}")
               .OnceAsync<Photo>();
 
-            return result?.Where(x=> photos.Contains(x.Key)).Select(x => x.Object);
+            return result?.Where(x=> x.Object.AlbumId == albumId).Select(x => x.Object);
         }
         public static async Task<Photo?> GetPhotoAsync(string userId, string photoId)
         {
