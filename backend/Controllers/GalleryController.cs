@@ -32,15 +32,13 @@ namespace backend.Controllers
             return Ok(result);
         }
         [Authorize]
-        [HttpGet("GetPhotosById")]
-        public async Task<ActionResult> GetPhotosById(string userId, string filesId)
+        [HttpGet("GetAlbumPhotos")]
+        public async Task<ActionResult> GetAlbumPhotos(string userId, string albumId)
         {
-            string[]? files = JsonConvert.DeserializeObject<string[]>(filesId);
-            if (files == null || files.Length < 1) return BadRequest("Data is null or empty");
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var result = await GalleryService.GetPhotosAsync(userId, files);
+            var result = await GalleryService.GetPhotosAsync(userId, albumId);
             return Ok(result);
         }
         [Authorize]
@@ -106,6 +104,20 @@ namespace backend.Controllers
             return Ok("Ok");
         }
         [Authorize]
+        [HttpPost("SetAlbum")]
+        public async Task<ActionResult> SetAlbum(GalleryRequest request)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            if (string.IsNullOrEmpty(request.PhotoId) || request.AlbumId == null) return BadRequest("Wrong data");
+            var result = await GalleryService.GetPhotoAsync(resultValidate.user.Id, request.PhotoId);
+            if (result == null) return NotFound("Photo not found");
+            result.AlbumId = request.AlbumId;
+            await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, request.PhotoId, result);
+            return Ok("Ok");
+        }
+        [Authorize]
         [HttpDelete("RemovePhoto")]
         public async Task<ActionResult> RemovePhoto(string id)
         {
@@ -122,8 +134,8 @@ namespace backend.Controllers
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var photos = await GalleryService.GetAlbumsAsync(resultValidate.user.Id);
-            return Ok(photos);
+            var result = await GalleryService.GetAlbumsAsync(resultValidate.user.Id);
+            return Ok(result);
         }
         [Authorize]
         [HttpPost("AddAlbum")]
@@ -136,7 +148,6 @@ namespace backend.Controllers
 
             var album = await GalleryService.AddAlbumAsync(resultValidate.user.Id);
 
-            List<string> Photos = new(); 
 
             if(request?.Files?.Length > 0)
             {
@@ -149,21 +160,16 @@ namespace backend.Controllers
                         Photo photo = new();
                         photo.Id = id;
                         photo.Url = url;
+                        photo.AlbumId = album.Key;
                         await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, id, photo);
-                        Photos.Add(id);
                     }
                 }
             }
 
-            if(Photos.Count > 0)
-            {
-                album.Object.Id = album.Key;
-                album.Object.Name = request.Name;
-                album.Object.Photos = Photos;
-                await GalleryService.UpdateAlbumAsync(resultValidate.user.Id, album.Key, album.Object);
-                return Ok("Ok");
-            }
-            else return Conflict("Add photos failed");
+            album.Object.Id = album.Key;
+            album.Object.Name = request.Name;
+            await GalleryService.UpdateAlbumAsync(resultValidate.user.Id, album.Key, album.Object);
+            return Ok("Ok");
         }
         private async Task<(string, User?)> ValidationUser()
         {
