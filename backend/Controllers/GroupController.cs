@@ -74,6 +74,22 @@ namespace backend.Controllers
             await GroupService.RemuveUserFromGroupAsync(id, resultValidate.user.Id);
             return Ok("You leave the group");
         }
+        [Authorize]
+        [HttpGet("GetUsersGroup")]
+        public async Task<ActionResult> GetUsersGroup(string id)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var group = await GroupService.GetGroupAsync(id);
+            var users = group.Users.Select((a) => a.Key);
+            var result = await UserService.GetUsersAsync(users);
+            return Ok(result);
+        }
+
+
+
+
+
         private async Task<(string, User?)> ValidationUser()
         {
             Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
