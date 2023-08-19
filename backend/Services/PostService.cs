@@ -1,6 +1,7 @@
 ﻿using Firebase.Database;
 using Firebase.Database.Query;
 using backend.Models;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace backend.Services
 {
@@ -13,10 +14,7 @@ namespace backend.Services
             {
                 Text = model.Text,
                 ImageUrl = model.ImageUrl,
-                VideoUrl = model.VideoUrl,
-                Likes = 0,
-                Reposts = 0,
-                Comments = new List<Comment>()
+                VideoUrl = model.VideoUrl
             };
 
             var postResponse = await firebaseDatabase.Child("Posts").PostAsync(post);
@@ -30,42 +28,43 @@ namespace backend.Services
             return post;
         }
 
-        public async Task AddCommentAsync(string postId, string commentText)
+        public async Task AddCommentAsync(string senderId, string userId, string postId, string text)
         {
-            var comment = new Comment
-            {
-                Text = commentText,
-                CreateTime = DateTime.UtcNow
-            };
+            var post = await firebaseDatabase
+              .Child("Posts")
+              .Child(userId)
+              .Child(postId).OnceSingleAsync<Photo>();
 
-            await firebaseDatabase.Child("Posts").Child(postId).Child("Comments").PostAsync(comment);
+            Comment comment = new();
+            comment.SenderId = senderId;
+            comment.Text = text;
+            comment.CreateTime = DateTime.UtcNow;
+            comment.Id = Guid.NewGuid().ToString("N");
+
+            post.Comments.Add(comment.Id, comment);
+
+            await firebaseDatabase
+              .Child("Posts")
+              .Child(userId)
+              .Child(postId)
+              .PutAsync(post);
         }
 
-        public async Task LikePostAsync(string postId)
+        public async Task LikePostAsync(string senderId, string userId, string postId)
         {
-            var post = GetPostById(postId);
-            post.Likes++;
+            var post = await firebaseDatabase
+              .Child("Posts")
+              .Child(userId)
+              .Child(postId).OnceSingleAsync<Post>();
 
-            await firebaseDatabase.Child("Posts").Child(postId).PutAsync(post);
-        }
+            if (post.Likes.Contains(senderId)) post.Likes.Remove(senderId);
+            else post.Likes.Add(senderId);
 
-        public async Task<string> RepostAsync(string postId)
-        {
-            var post = GetPostById(postId);
-
-            var newPost = new Post
-            {
-                Text = post.Text,
-                ImageUrl = post.ImageUrl,
-                VideoUrl = post.VideoUrl,
-                Likes = 0,
-                Reposts = 0,
-                Comments = new List<Comment>()
-            };
-
-            var newPostResponse = await firebaseDatabase.Child("Posts").PostAsync(newPost);
-
-            return newPostResponse.Key;
+            await firebaseDatabase
+              .Child("Posts")
+              .Child(userId)
+              .Child(postId)
+              .PutAsync(post);
         }
     }
 }

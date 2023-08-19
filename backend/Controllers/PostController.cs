@@ -42,24 +42,17 @@ namespace backend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddComment(string postId, string commentText)
+        public async Task<IActionResult> AddComment(string senderId, string userId, string postId, string text)
         {
-            await _postService.AddCommentAsync(postId, commentText);
+            await _postService.AddCommentAsync(senderId, userId, postId, text);
             return RedirectToAction("Details", new { postId = postId });
         }
 
         [HttpPost]
-        public async Task<IActionResult> LikePost(string postId)
+        public async Task<IActionResult> LikePost(string senderId, string userId, string postId)
         {
-            await _postService.LikePostAsync(postId);
+            await _postService.LikePostAsync(senderId, userId, postId);
             return RedirectToAction("Details", new { postId = postId });
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Repost(string postId)
-        {
-            var newPostId = await _postService.RepostAsync(postId);
-            return RedirectToAction("Details", new { postId = newPostId });
         }
     }
 }
