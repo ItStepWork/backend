@@ -171,6 +171,32 @@ namespace backend.Controllers
             await GalleryService.UpdateAlbumAsync(resultValidate.user.Id, album.Key, album.Object);
             return Ok("Ok");
         }
+        [Authorize]
+        [HttpDelete("RemoveAlbum")]
+        public async Task<ActionResult> RemoveAlbum(string id)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await GalleryService.RemoveAlbumAsync(resultValidate.user.Id, id);
+            return Ok("Ok");
+        }
+        [Authorize]
+        [HttpDelete("RemoveAlbumAndPhotos")]
+        public async Task<ActionResult> RemoveAlbumAndPhotos(string id)
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var result = await GalleryService.GetPhotosAsync(resultValidate.user.Id, id);
+            if(result == null || result.Count() == 0) return NotFound("Photos not found");
+            foreach (var photo in result)
+            {
+                await GalleryService.RemovePhotoAsync(resultValidate.user.Id, photo.Id);
+            }
+            await GalleryService.RemoveAlbumAsync(resultValidate.user.Id, id);
+            return Ok("Ok");
+        }
         private async Task<(string, User?)> ValidationUser()
         {
             Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);

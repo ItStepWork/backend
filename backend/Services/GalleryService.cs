@@ -109,5 +109,11 @@ namespace backend.Services
               .Child($"Albums/{userId}/{albumId}")
               .PutAsync(album);
         }
+        public static async Task RemoveAlbumAsync(string userId, string albumId)
+        {
+            await firebaseDatabase
+              .Child($"Albums/{userId}/{albumId}")
+              .DeleteAsync();
+        }
     }
 }
