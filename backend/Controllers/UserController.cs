@@ -45,19 +45,19 @@ namespace backend.Controllers
         }
         [Authorize]
         [HttpPost("AddFriend")]
-        public async Task<ActionResult> AddFriend(string id)
+        public async Task<ActionResult> AddFriend(FriendsRequest request)
         {
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            User? recipient = await UserService.FindUserByIdAsync(id);
+            User? recipient = await UserService.FindUserByIdAsync(request.UserId);
             if (recipient == null) return NotFound("Recipient not found!");
 
-            var result = await UserService.FindFriendAsync(resultValidate.user.Id, id);
+            var result = await UserService.FindFriendAsync(resultValidate.user.Id, request.UserId);
 
             if (result != null) return Conflict("Invitation already sent");
 
-            bool check = await UserService.AddFriendAsync(resultValidate.user.Id, id);
+            bool check = await UserService.AddFriendAsync(resultValidate.user.Id, request.UserId);
             if (!check) return Conflict("Add friend failed");
             else return Ok("Friend invite sent");
         }
