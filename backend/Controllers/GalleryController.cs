@@ -1,8 +1,6 @@
 ﻿using backend.Models;
 using backend.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using System.Security.Claims;
 
 namespace backend.Controllers
@@ -11,7 +9,6 @@ namespace backend.Controllers
     [Route("[controller]")]
     public class GalleryController : Controller
     {
-        [Authorize]
         [HttpGet("GetPhotos")]
         public async Task<ActionResult> GetPhotos()
         {
@@ -21,7 +18,6 @@ namespace backend.Controllers
             var photos = await GalleryService.GetPhotosAsync(resultValidate.user.Id);
             return Ok(photos);
         }
-        [Authorize]
         [HttpGet("GetPhoto")]
         public async Task<ActionResult> GetPhoto(string userId, string photoId)
         {
@@ -31,7 +27,6 @@ namespace backend.Controllers
             var result = await GalleryService.GetPhotoAsync(userId, photoId);
             return Ok(result);
         }
-        [Authorize]
         [HttpGet("GetAlbumPhotos")]
         public async Task<ActionResult> GetAlbumPhotos(string userId, string albumId)
         {
@@ -41,7 +36,6 @@ namespace backend.Controllers
             var result = await GalleryService.GetPhotosAsync(userId, albumId);
             return Ok(result);
         }
-        [Authorize]
         [HttpPost("AddPhoto")]
         public async Task<ActionResult> AddPhoto(IFormFile file)
         {
@@ -61,7 +55,6 @@ namespace backend.Controllers
 
             return Ok("Ok");
         }
-        [Authorize]
         [HttpPost("SendCommentPhoto")]
         public async Task<ActionResult> SendCommentPhoto(GalleryRequest request)
         {
@@ -71,7 +64,6 @@ namespace backend.Controllers
             await GalleryService.SendCommentPhotoAsync(resultValidate.user.Id, request.UserId, request.PhotoId, request.Text);
             return Ok("Ok");
         }
-        [Authorize]
         [HttpPost("SetLikePhoto")]
         public async Task<ActionResult> SetLikePhoto(GalleryRequest request)
         {
@@ -81,7 +73,6 @@ namespace backend.Controllers
             await GalleryService.SetLikePhotoAsync(resultValidate.user.Id, request.UserId, request.PhotoId);
             return Ok("Ok");
         }
-        [Authorize]
         [HttpPost("SetAvatar")]
         public async Task<ActionResult> SetAvatar(GalleryRequest request)
         {
@@ -92,7 +83,6 @@ namespace backend.Controllers
             await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
             return Ok("Ok");
         }
-        [Authorize]
         [HttpPost("SetBackground")]
         public async Task<ActionResult> SetBackground(GalleryRequest request)
         {
@@ -103,7 +93,6 @@ namespace backend.Controllers
             await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
             return Ok("Ok");
         }
-        [Authorize]
         [HttpPost("SetAlbum")]
         public async Task<ActionResult> SetAlbum(GalleryRequest request)
         {
@@ -117,7 +106,6 @@ namespace backend.Controllers
             await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, request.PhotoId, result);
             return Ok("Ok");
         }
-        [Authorize]
         [HttpDelete("RemovePhoto")]
         public async Task<ActionResult> RemovePhoto(string id)
         {
@@ -127,7 +115,6 @@ namespace backend.Controllers
             await GalleryService.RemovePhotoAsync(resultValidate.user.Id, id);
             return Ok("Ok");
         }
-        [Authorize]
         [HttpGet("GetAlbums")]
         public async Task<ActionResult> GetAlbums()
         {
@@ -137,7 +124,6 @@ namespace backend.Controllers
             var result = await GalleryService.GetAlbumsAsync(resultValidate.user.Id);
             return Ok(result);
         }
-        [Authorize]
         [HttpPost("AddAlbum")]
         public async Task<ActionResult> AddAlbum([FromForm] GalleryRequest request)
         {
@@ -171,7 +157,6 @@ namespace backend.Controllers
             await GalleryService.UpdateAlbumAsync(resultValidate.user.Id, album.Key, album.Object);
             return Ok("Ok");
         }
-        [Authorize]
         [HttpDelete("RemoveAlbum")]
         public async Task<ActionResult> RemoveAlbum(string id)
         {
@@ -181,7 +166,6 @@ namespace backend.Controllers
             await GalleryService.RemoveAlbumAsync(resultValidate.user.Id, id);
             return Ok("Ok");
         }
-        [Authorize]
         [HttpDelete("RemoveAlbumAndPhotos")]
         public async Task<ActionResult> RemoveAlbumAndPhotos(string id)
         {

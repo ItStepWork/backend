@@ -1,6 +1,5 @@
 ﻿using backend.Models;
 using backend.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -10,7 +9,6 @@ namespace backend.Controllers
     [Route("[controller]")]
     public class UserController : Controller
     {
-        [Authorize]
         [HttpGet("GetUser")]
         public async Task<ActionResult> GetUser(string id)
         {
@@ -21,7 +19,6 @@ namespace backend.Controllers
             var user = await UserService.GetUserAsync(id);
             return Ok(user);
         }
-        [Authorize]
         [HttpGet("GetUsers")]
         public async Task<ActionResult> GetUsers()
         {
@@ -32,7 +29,6 @@ namespace backend.Controllers
             IEnumerable<UserBase>? users = await UserService.GetUsersAsync(resultValidate.user.Id);
             return Ok(users);
         }
-        [Authorize]
         [HttpGet("GetFriends")]
         public async Task<ActionResult> GetFriends()
         {
@@ -43,7 +39,6 @@ namespace backend.Controllers
 
             return Ok(result);
         }
-        [Authorize]
         [HttpPost("AddFriend")]
         public async Task<ActionResult> AddFriend(FriendsRequest request)
         {
@@ -61,7 +56,6 @@ namespace backend.Controllers
             if (!check) return Conflict("Add friend failed");
             else return Ok("Friend invite sent");
         }
-        [Authorize]
         [HttpPost("ConfirmFriend")]
         public async Task<ActionResult> ConfirmFriend(string id)
         {
@@ -76,7 +70,6 @@ namespace backend.Controllers
             if (!result) return Conflict("Confirm friend failed");
             else return Ok("Friend added");
         }
-        [Authorize]
         [HttpDelete("RemoveFriend")]
         public async Task<ActionResult> RemoveFriend(string id)
         {
@@ -90,8 +83,6 @@ namespace backend.Controllers
 
             return Ok("Friend removed");
         }
-
-        [Authorize]
         [HttpPost("UpdateUser")]
         public async Task<ActionResult> UpdateUser(User data)
         {
@@ -131,7 +122,6 @@ namespace backend.Controllers
             await UserService.UpdateUserAsync(resultValidate.user.Id, user);
             return Ok("User is Updated");
         }
-        [Authorize]
         [HttpPost("SaveAvatar")]
         public async Task<ActionResult> SaveAvatar(IFormFile file)
         {
@@ -156,7 +146,6 @@ namespace backend.Controllers
 
             return Ok(resultValidate.user);
         }
-        [Authorize]
         [HttpPost("SaveBackground")]
         public async Task<ActionResult> SaveBackground(IFormFile file)
         {

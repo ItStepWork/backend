@@ -1,6 +1,5 @@
 ﻿using backend.Models;
 using backend.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -10,7 +9,6 @@ namespace backend.Controllers
     [Route("[controller]")]
     public class GroupController : Controller
     {
-        [Authorize]
         [HttpPost("AddGroup")]
         public async Task<ActionResult> AddGroup([FromForm] GroupRequest groupRequest)
         {
@@ -31,7 +29,6 @@ namespace backend.Controllers
             await GroupService.UpdateGroupAsync(result.Key, group);
             return Ok("Group added");
         }
-        [Authorize]
         [HttpGet("GetGroups")]
         public async Task<ActionResult> GetGroups()
         {
@@ -43,7 +40,6 @@ namespace backend.Controllers
             sort.Sort((y, x) => Convert.ToInt32(x.Users.ContainsKey(resultValidate.user.Id)) - Convert.ToInt32(y.Users.ContainsKey(resultValidate.user.Id)));
             return Ok(sort);
         }
-        [Authorize]
         [HttpGet("GetGroup")]
         public async Task<ActionResult> GetGroup(string id)
         {
@@ -52,7 +48,6 @@ namespace backend.Controllers
             var group = await GroupService.GetGroupAsync(id);
             return Ok(group);
         }
-        [Authorize]
         [HttpPost("JoinGroup")]
         public async Task<ActionResult> JoinGroup(GroupRequest groupRequest)
         {
@@ -65,7 +60,6 @@ namespace backend.Controllers
             await GroupService.UpdateGroupAsync(groupRequest.Id, group);
             return Ok("Request has been sent");
         }
-        [Authorize]
         [HttpDelete("LeaveGroup")]
         public async Task<ActionResult> LeaveGroup(string id)
         {
@@ -74,7 +68,6 @@ namespace backend.Controllers
             await GroupService.RemuveUserFromGroupAsync(id, resultValidate.user.Id);
             return Ok("You leave the group");
         }
-        [Authorize]
         [HttpGet("GetUsersGroup")]
         public async Task<ActionResult> GetUsersGroup(string id)
         {
@@ -85,9 +78,6 @@ namespace backend.Controllers
             var result = await UserService.GetUsersAsync(users);
             return Ok(result);
         }
-
-
-
 
 
         private async Task<(string, User?)> ValidationUser()

@@ -1,6 +1,5 @@
 ﻿using backend.Models;
 using backend.Services;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -10,10 +9,10 @@ namespace backend.Controllers
     [Route("[controller]")]
     public class MessagingController : Controller
     {
-        [Authorize]
         [HttpPost("SendMessage")]
         public async Task<ActionResult> SendMessage([FromForm] MessageRequest data)
         {
+            if (string.IsNullOrEmpty(data.Text)) return BadRequest("Text is null or empty");
             (string response, User? user) resultValidate = await ValidationUser();
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
@@ -25,7 +24,6 @@ namespace backend.Controllers
 
             return Ok("Ok");
         }
-        [Authorize]
         [HttpGet("GetDialogs")]
         public async Task<ActionResult> GetDialogs()
         {
@@ -35,7 +33,6 @@ namespace backend.Controllers
             var result = await MessagingService.GetDialogs(resultValidate.user.Id);
             return Ok(result);
         }
-        [Authorize]
         [HttpDelete("RemoveDialog")]
         public async Task<ActionResult> RemoveDialog(string id)
         {
@@ -45,7 +42,6 @@ namespace backend.Controllers
             await MessagingService.RemoveDialogAsync(resultValidate.user.Id, id);
             return Ok("Ok");
         }
-        [Authorize]
         [HttpGet("GetMessages")]
         public async Task<ActionResult> GetMessages(string id)
         {
