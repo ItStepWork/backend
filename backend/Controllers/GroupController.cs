@@ -70,6 +70,16 @@ namespace backend.Controllers
             await GroupService.RemuveUserFromGroupAsync(id, resultValidate.user.Id);
             return Ok("You leave the group");
         }
+        [HttpPost("RemoveUserFromGroup")]
+        public async Task<ActionResult> RemoveUserFromGroup(GroupRequest groupRequest)
+        {
+            await Console.Out.WriteLineAsync(groupRequest.Id + "----------"+ groupRequest.UserId);
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await GroupService.RemuveUserFromGroupAsync(groupRequest.Id, groupRequest.UserId);
+            return Ok("Removed");
+        }
         [HttpGet("GetUsersGroup")]
         public async Task<ActionResult> GetUsersGroup(string id)
         {
