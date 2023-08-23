@@ -1,6 +1,6 @@
 ﻿namespace backend.Models
 {
-    public class FriendsRequest
+    public class FriendRequest
     {
         public string? UserId { get; set; }
     }

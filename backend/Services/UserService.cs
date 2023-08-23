@@ -2,7 +2,10 @@
 using Firebase.Database;
 using Firebase.Database.Query;
 using Firebase.Storage;
-using Newtonsoft.Json;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace backend.Services
 {
@@ -11,6 +14,37 @@ namespace backend.Services
         private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
         private static readonly FirebaseStorage firebaseStorage = new FirebaseStorage("database-50f39.appspot.com");
 
+        public static Response GetToken(FirebaseObject<User> user)
+        {
+            List<Claim> claims = new();
+            claims.Add(new Claim(ClaimTypes.PrimarySid, user.Key));
+            claims.Add(new Claim(ClaimTypes.Email, user.Object.Email));
+            claims.Add(new Claim(ClaimTypes.Role, user.Object.Role.ToString()));
+
+            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ConfigurationManager.AppSetting["JWT:Secret"]));
+            var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
+            var tokeOptions = new JwtSecurityToken(
+                issuer: ConfigurationManager.AppSetting["JWT:ValidIssuer"],
+                audience: ConfigurationManager.AppSetting["JWT:ValidAudience"],
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: signinCredentials
+            );
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
+            return new Response(user.Object, tokenString);
+        }
+        public static async Task<(string response, User? user)> ValidationUser(HttpContext httpContext)
+        {
+            Claim? claimId = httpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
+            if (claimId == null) return ("User not authorize!", null);
+
+            User? sender = await FindUserByIdAsync(claimId.Value);
+            if (sender == null) return ("Sender not found!", null);
+
+            sender.LastVisit = DateTime.UtcNow;
+            await UpdateUserAsync(claimId.Value, sender);
+            return ("", sender);
+        }
         public static async Task<FirebaseObject<User>> AddUserAsync(User user)
         {
             return await firebaseDatabase
@@ -73,70 +107,6 @@ namespace backend.Services
               .Child(userId).OnceSingleAsync<User>();
 
             return user;
-        }
-        public static async Task<bool> AddFriendAsync(string senderId, string recipientId)
-        {
-            Friend recipient = new Friend();
-            recipient.UserId = senderId;
-            Friend sender = new Friend();
-            sender.UserId = recipientId;
-
-            await UpdateFriendAsync(recipientId, senderId, recipient);
-            await UpdateFriendAsync(senderId, recipientId, sender);
-
-            return true;
-        }
-        public static async Task<Friend?> FindFriendAsync(string senderId, string recipientId)
-        {
-            return await firebaseDatabase
-              .Child($"Friends/{senderId}")
-              .Child(recipientId)
-              .OnceSingleAsync<Friend>();
-        }
-        private static async Task UpdateFriendAsync(string senderId, string recipientId, Friend friend)
-        {
-            await firebaseDatabase
-              .Child("Friends")
-              .Child(senderId)
-              .Child(recipientId)
-              .PutAsync(friend);
-        }
-        public static async Task RemoveFriendAsync(string senderId, string recipientId)
-        {
-            await firebaseDatabase
-              .Child("Friends")
-              .Child(senderId)
-              .Child(recipientId)
-              .DeleteAsync();
-            await firebaseDatabase
-              .Child("Friends")
-              .Child(recipientId)
-              .Child(senderId)
-              .DeleteAsync();
-        }
-        public static async Task<bool> ConfirmFriendAsync(string senderId, string recipientId)
-        {
-            var recipient = await FindFriendAsync(senderId, recipientId);
-            var sender = await FindFriendAsync(recipientId, senderId);
-
-            if (recipient != null && sender != null)
-            {
-                recipient.IsConfirmed = true;
-                sender.IsConfirmed = true;
-                await UpdateFriendAsync(senderId, recipientId, recipient);
-                await UpdateFriendAsync(recipientId, senderId, sender);
-                return true;
-            }
-            else return false;
-        }
-        public static async Task<IEnumerable<Friend>?> GetFriendsAsync(string id)
-        {
-            var friends = await firebaseDatabase
-              .Child($"Friends/{id}")
-              .OnceAsync<Friend>();
-
-            return friends?
-              .Select(x => x.Object);
         }
 
         public static async Task<string?> SaveFileAsync(IFormFile file, string child, string name)

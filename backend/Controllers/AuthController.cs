@@ -1,11 +1,6 @@
 ﻿using backend.Models;
 using backend.Services;
-using Firebase.Database;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace backend.Controllers
 {
@@ -27,8 +22,8 @@ namespace backend.Controllers
 
                 user.LastVisit = DateTime.UtcNow;
                 await UserService.UpdateUserAsync(find.Key, user);
-
-                return Ok(GetResponse(find));
+                var response = UserService.GetToken(find);
+                return Ok(response);
             }
             else return Conflict("User does not exist");
         }
@@ -67,26 +62,6 @@ namespace backend.Controllers
 
                 return Ok("Registration successful");
             }
-        }
-        private static Response GetResponse(FirebaseObject<User> user)
-        {
-            List<Claim> claims = new();
-            claims.Add(new Claim(ClaimTypes.PrimarySid, user.Key));
-            claims.Add(new Claim(ClaimTypes.Email, user.Object.Email));
-            claims.Add(new Claim(ClaimTypes.Role, user.Object.Role.ToString()));
-            
-
-            var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(ConfigurationManager.AppSetting["JWT:Secret"]));
-            var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
-            var tokeOptions = new JwtSecurityToken(
-                issuer: ConfigurationManager.AppSetting["JWT:ValidIssuer"],
-                audience: ConfigurationManager.AppSetting["JWT:ValidAudience"],
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: signinCredentials
-            );
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
-            return new Response(user.Object, tokenString);
         }
     }
 }

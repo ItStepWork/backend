@@ -1,7 +1,6 @@
 ﻿using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace backend.Controllers
 {
@@ -12,81 +11,26 @@ namespace backend.Controllers
         [HttpGet("GetUser")]
         public async Task<ActionResult> GetUser(string id)
         {
-            
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-            
+
             var user = await UserService.GetUserAsync(id);
             return Ok(user);
         }
         [HttpGet("GetUsers")]
         public async Task<ActionResult> GetUsers()
         {
-
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             IEnumerable<UserBase>? users = await UserService.GetUsersAsync(resultValidate.user.Id);
             return Ok(users);
         }
-        [HttpGet("GetFriends")]
-        public async Task<ActionResult> GetFriends()
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            var result = await UserService.GetFriendsAsync(resultValidate.user.Id);
-
-            return Ok(result);
-        }
-        [HttpPost("AddFriend")]
-        public async Task<ActionResult> AddFriend(FriendsRequest request)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            User? recipient = await UserService.FindUserByIdAsync(request.UserId);
-            if (recipient == null) return NotFound("Recipient not found!");
-
-            var result = await UserService.FindFriendAsync(resultValidate.user.Id, request.UserId);
-
-            if (result != null) return Conflict("Invitation already sent");
-
-            bool check = await UserService.AddFriendAsync(resultValidate.user.Id, request.UserId);
-            if (!check) return Conflict("Add friend failed");
-            else return Ok("Friend invite sent");
-        }
-        [HttpPost("ConfirmFriend")]
-        public async Task<ActionResult> ConfirmFriend(string id)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            User? recipient = await UserService.FindUserByIdAsync(id);
-            if (recipient == null) return NotFound("Recipient not found!");
-
-            var result = await UserService.ConfirmFriendAsync(resultValidate.user.Id, id);
-
-            if (!result) return Conflict("Confirm friend failed");
-            else return Ok("Friend added");
-        }
-        [HttpDelete("RemoveFriend")]
-        public async Task<ActionResult> RemoveFriend(string id)
-        {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            User? recipient = await UserService.FindUserByIdAsync(id);
-            if (recipient == null) return NotFound("Recipient not found!");
-
-            await UserService.RemoveFriendAsync(resultValidate.user.Id, id);
-
-            return Ok("Friend removed");
-        }
+        
         [HttpPost("UpdateUser")]
         public async Task<ActionResult> UpdateUser(User data)
         {
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             User user = resultValidate.user;
@@ -125,9 +69,8 @@ namespace backend.Controllers
         [HttpPost("SaveAvatar")]
         public async Task<ActionResult> SaveAvatar(IFormFile file)
         {
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
 
             var photo = await GalleryService.AddPhotoAsync(resultValidate.user.Id);
 
@@ -149,7 +92,7 @@ namespace backend.Controllers
         [HttpPost("SaveBackground")]
         public async Task<ActionResult> SaveBackground(IFormFile file)
         {
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             var photo = await GalleryService.AddPhotoAsync(resultValidate.user.Id);
@@ -168,19 +111,6 @@ namespace backend.Controllers
             await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
 
             return Ok(resultValidate.user);
-        }
-
-        private async Task<(string, User?)> ValidationUser()
-        {
-            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return ("User not authorize!", null);
-
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return ("Sender not found!", null);
-
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
-            return ("", sender);
         }
     }
 }

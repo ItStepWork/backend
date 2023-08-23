@@ -1,7 +1,6 @@
 ﻿using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace backend.Controllers
 {
@@ -12,7 +11,7 @@ namespace backend.Controllers
         [HttpPost("AddGroup")]
         public async Task<ActionResult> AddGroup([FromForm] GroupRequest groupRequest)
         {
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             Group group = new Group();
@@ -32,8 +31,9 @@ namespace backend.Controllers
         [HttpGet("GetGroups")]
         public async Task<ActionResult> GetGroups()
         {
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
             IEnumerable<Group>? groups = await GroupService.GetGroupsAsync();
             var sort = groups.ToList();
             sort.Sort((y, x) => Convert.ToInt32(x.AdminId.Equals(resultValidate.user.Id)) - Convert.ToInt32(y.AdminId.Equals(resultValidate.user.Id)));
@@ -43,15 +43,16 @@ namespace backend.Controllers
         [HttpGet("GetGroup")]
         public async Task<ActionResult> GetGroup(string id)
         {
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
             var group = await GroupService.GetGroupAsync(id);
             return Ok(group);
         }
         [HttpPost("JoinGroup")]
         public async Task<ActionResult> JoinGroup(GroupRequest groupRequest)
         {
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             Group? group = await GroupService.GetGroupByIdAsync(groupRequest.Id);
@@ -63,34 +64,22 @@ namespace backend.Controllers
         [HttpDelete("LeaveGroup")]
         public async Task<ActionResult> LeaveGroup(string id)
         {
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
             await GroupService.RemuveUserFromGroupAsync(id, resultValidate.user.Id);
             return Ok("You leave the group");
         }
         [HttpGet("GetUsersGroup")]
         public async Task<ActionResult> GetUsersGroup(string id)
         {
-            (string response, User? user) resultValidate = await ValidationUser();
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
             var group = await GroupService.GetGroupAsync(id);
             var users = group.Users.Select((a) => a.Key);
             var result = await UserService.GetUsersAsync(users);
             return Ok(result);
-        }
-
-
-        private async Task<(string, User?)> ValidationUser()
-        {
-            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return ("User not authorize!", null);
-
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return ("Sender not found!", null);
-
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
-            return ("", sender);
         }
     }
 }
