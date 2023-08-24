@@ -28,6 +28,29 @@ namespace backend.Controllers
             await GroupService.UpdateGroupAsync(result.Key, group);
             return Ok("Group added");
         }
+        [HttpPost("UpdateAvatar")]
+        public async Task<ActionResult> UpdateAvatar([FromForm] GroupRequest groupRequest)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var group = await GroupService.GetGroupAsync(groupRequest.Id);
+            var url = await UserService.SaveFileAsync(groupRequest.File, "Groups", group.Id);
+            group.PictureUrl = url;
+            await GroupService.UpdateGroupAsync(group.Id, group);
+            return Ok("Avatar updated");
+        }
+        [HttpPost("UpdateGroup")]
+        public async Task<ActionResult> UpdateGroup([FromForm] GroupRequest groupRequest)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var group = await GroupService.GetGroupAsync(groupRequest.Id);
+            group.Description = groupRequest.Description;
+            group.Audience = groupRequest.Audience;
+            group.Name = groupRequest.Name;
+            await GroupService.UpdateGroupAsync(group.Id, group);
+            return Ok("Group updated");
+        }
         [HttpGet("GetGroups")]
         public async Task<ActionResult> GetGroups()
         {
