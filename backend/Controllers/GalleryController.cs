@@ -10,12 +10,12 @@ namespace backend.Controllers
     public class GalleryController : Controller
     {
         [HttpGet("GetPhotos")]
-        public async Task<ActionResult> GetPhotos()
+        public async Task<ActionResult> GetPhotos(string userId)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var photos = await GalleryService.GetPhotosAsync(resultValidate.user.Id);
+            var photos = await GalleryService.GetPhotosAsync(userId);
             return Ok(photos);
         }
         [HttpGet("GetPhoto")]
@@ -116,12 +116,12 @@ namespace backend.Controllers
             return Ok("Ok");
         }
         [HttpGet("GetAlbums")]
-        public async Task<ActionResult> GetAlbums()
+        public async Task<ActionResult> GetAlbums(string userId)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var result = await GalleryService.GetAlbumsAsync(resultValidate.user.Id);
+            var result = await GalleryService.GetAlbumsAsync(userId);
             return Ok(result);
         }
         [HttpPost("AddAlbum")]
