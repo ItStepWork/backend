@@ -8,7 +8,7 @@ namespace backend.Models
         public string? Name { get; set; }
         public string? UserId { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public Audience Audience { get; set; }
+        public Audience? Audience { get; set; }
         public string? Description { get; set; }
         public IFormFile? File { get; set; }
     }
