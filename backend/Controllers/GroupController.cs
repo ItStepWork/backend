@@ -96,12 +96,24 @@ namespace backend.Controllers
         [HttpPost("RemoveUserFromGroup")]
         public async Task<ActionResult> RemoveUserFromGroup(GroupRequest groupRequest)
         {
-            await Console.Out.WriteLineAsync(groupRequest.Id + "----------"+ groupRequest.UserId);
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             await GroupService.RemuveUserFromGroupAsync(groupRequest.Id, groupRequest.UserId);
             return Ok("Removed");
+        }
+        [HttpPost("AcceptUserToGroup")]
+        public async Task<ActionResult> AcceptUserToGroup(GroupRequest groupRequest)
+        {
+            if (string.IsNullOrEmpty(groupRequest.UserId)|| string.IsNullOrEmpty(groupRequest.Id)) return BadRequest("GroupRequest is null or empty");
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var group = await GroupService.GetGroupAsync(groupRequest.Id);
+            if(group==null|| group.Users==null) return NotFound("Group is null");
+            group.Users[groupRequest.UserId] = true;
+            await GroupService.UpdateGroupAsync(groupRequest.Id, group);
+            return Ok("Accepted");
         }
         [HttpGet("GetUsersGroup")]
         public async Task<ActionResult> GetUsersGroup(string id)
@@ -110,7 +122,29 @@ namespace backend.Controllers
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             var group = await GroupService.GetGroupAsync(id);
-            var users = group.Users.Select((a) => a.Key);
+            var users = group?.Users?.Select((a) => a.Key);
+            var result = await UserService.GetUsersAsync(users);
+            return Ok(result);
+        }
+        [HttpGet("GetMembersGroup")]
+        public async Task<ActionResult> GetMembersGroup(string id)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var group = await GroupService.GetGroupAsync(id);
+            var users = group?.Users?.Where((a)=>a.Value==true).Select((a) => a.Key);
+            var result = await UserService.GetUsersAsync(users);
+            return Ok(result);
+        }
+        [HttpGet("GetRequestsToGroup")]
+        public async Task<ActionResult> GetRequestsToGroup(string id)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var group = await GroupService.GetGroupAsync(id);
+            var users = group?.Users?.Where((a) => a.Value == false).Select((a) => a.Key);
             var result = await UserService.GetUsersAsync(users);
             return Ok(result);
         }
