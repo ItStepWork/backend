@@ -11,8 +11,10 @@ namespace backend.Services
         {
             Friend recipient = new Friend();
             recipient.UserId = senderId;
+            recipient.SenderId = senderId;
             Friend sender = new Friend();
             sender.UserId = recipientId;
+            sender.SenderId = senderId;
 
             await UpdateFriendAsync(recipientId, senderId, recipient);
             await UpdateFriendAsync(senderId, recipientId, sender);
@@ -70,6 +72,147 @@ namespace backend.Services
 
             return friends?
               .Select(x => x.Object);
+        }
+        public static async Task<IEnumerable<UserBase>> GetConfirmedFriends(string senderId, string userId)
+        {
+            var friends = await firebaseDatabase
+              .Child($"Friends/{userId}")
+              .OnceAsync<Friend>();
+
+            var users = await UserService.GetUsersAsync(senderId);
+
+            if (friends != null && friends.Count > 0 && users != null)
+            {
+                if (senderId == userId)
+                {
+                    string?[] filter = friends.Where(x => x.Object.IsConfirmed == true).Select(x => x.Object.UserId).ToArray();
+                    var result = users.Where(user => filter.Contains(user.Id));
+                    return result;
+                }
+                else
+                {
+                    var friendsSender = await firebaseDatabase
+                      .Child($"Friends/{senderId}")
+                      .OnceAsync<Friend>();
+
+                    if (friendsSender != null && friendsSender.Count > 0)
+                    {
+                        string?[] filter = friends.Select(x => x.Object.UserId).ToArray();
+                        string?[] filterSender = friendsSender.Where(x => x.Object.IsConfirmed == true).Select(x => x.Object.UserId).ToArray();
+                        var result = users.Where(user => filter.Contains(user.Id) && filterSender.Contains(user.Id));
+                        return result;
+                    }
+                    else return new UserBase[] { };
+                }
+            }
+            return new UserBase[] { };
+        }
+        public static async Task<IEnumerable<UserBase>> GetUnconfirmedFriends(string senderId, string userId)
+        {
+            var friends = await firebaseDatabase
+              .Child($"Friends/{userId}")
+              .OnceAsync<Friend>();
+
+            var users = await UserService.GetUsersAsync(senderId);
+
+            if (friends != null && friends.Count > 0 && users != null)
+            {
+                if (senderId == userId)
+                {
+                    string?[] filter = friends.Where(x => x.Object.IsConfirmed == false && x.Object.SenderId != senderId).Select(x => x.Object.UserId).ToArray();
+                    var result = users.Where(user => filter.Contains(user.Id));
+                    return result;
+                }
+                else
+                {
+                    var friendsSender = await firebaseDatabase
+                      .Child($"Friends/{senderId}")
+                      .OnceAsync<Friend>();
+
+                    if (friendsSender != null && friendsSender.Count > 0)
+                    {
+                        string?[] filter = friends.Select(x => x.Object.UserId).ToArray();
+                        string?[] filterSender = friendsSender.Where(x => x.Object.IsConfirmed == false && x.Object.SenderId != senderId).Select(x => x.Object.UserId).ToArray();
+                        var result = users.Where(user => filter.Contains(user.Id) && filterSender.Contains(user.Id));
+                        return result;
+                    }
+                    else return new UserBase[] { };
+                }
+            }
+            return new UserBase[] { };
+        }
+        public static async Task<IEnumerable<UserBase>> GetWaitingFriends(string senderId, string userId)
+        {
+            var friends = await firebaseDatabase
+              .Child($"Friends/{userId}")
+              .OnceAsync<Friend>();
+
+            var users = await UserService.GetUsersAsync(senderId);
+
+            if (friends != null && friends.Count > 0 && users != null)
+            {
+                if (senderId == userId)
+                {
+                    string?[] filter = friends.Where(x => x.Object.IsConfirmed == false && x.Object.SenderId == senderId).Select(x => x.Object.UserId).ToArray();
+                    var result = users.Where(user => filter.Contains(user.Id));
+                    return result;
+                }
+                else
+                {
+                    var friendsSender = await firebaseDatabase
+                      .Child($"Friends/{senderId}")
+                      .OnceAsync<Friend>();
+
+                    if (friendsSender != null && friendsSender.Count > 0)
+                    {
+                        string?[] filter = friends.Select(x => x.Object.UserId).ToArray();
+                        string?[] filterSender = friendsSender.Where(x => x.Object.IsConfirmed == false && x.Object.SenderId == senderId).Select(x => x.Object.UserId).ToArray();
+                        var result = users.Where(user => filter.Contains(user.Id) && filterSender.Contains(user.Id));
+                        return result;
+                    }
+                    else return new UserBase[] { };
+                }
+            }
+            return new UserBase[] { };
+        }
+        public static async Task<IEnumerable<UserBase>> GetOtherUsers(string senderId, string userId)
+        {
+            var friends = await firebaseDatabase
+              .Child($"Friends/{userId}")
+              .OnceAsync<Friend>();
+
+            var users = await UserService.GetUsersAsync(senderId);
+
+            if (friends != null && friends.Count > 0 && users != null)
+            {
+                if(senderId == userId)
+                {
+                    string?[] filter = friends.Select(x => x.Object.UserId).ToArray();
+                    var result = users.Where(user => !filter.Contains(user.Id));
+                    return result;
+                }
+                else
+                {
+                    var friendsSender = await firebaseDatabase
+                      .Child($"Friends/{senderId}")
+                      .OnceAsync<Friend>();
+
+                    string?[] filter = friends.Where(x => x.Object.IsConfirmed == true).Select(x => x.Object.UserId).ToArray();
+                    string?[] filterSender = friendsSender.Select(x => x.Object.UserId).ToArray();
+                    if(filterSender.Length > 0)
+                    {
+                        var result = users.Where(user => filter.Contains(user.Id) && !filterSender.Contains(user.Id));
+                        return result;
+                    }
+                    else
+                    {
+                        var result = users.Where(user => filter.Contains(user.Id));
+                        return result;
+                    }
+                }
+            }
+            else if(users != null && senderId == userId) return users;
+            else return new UserBase[] { };
         }
     }
 }

@@ -2,6 +2,6 @@
 {
     public class FriendRequest
     {
-        public string? UserId { get; set; }
+        public string? Id { get; set; }
     }
 }

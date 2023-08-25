@@ -134,7 +134,6 @@ namespace backend.Controllers
 
             var album = await GalleryService.AddAlbumAsync(resultValidate.user.Id);
 
-
             if(request?.Files?.Length > 0)
             {
                 foreach (var file in request.Files)
