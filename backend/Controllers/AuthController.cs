@@ -60,6 +60,9 @@ namespace backend.Controllers
                 user.Id = result.Key;
                 await UserService.UpdateUserAsync(result.Key, user);
 
+          
+                await EmailService.SendEmailAsync(userData.Email, "Регистрация на Coonections", userData.FirstName, userData.LastName, user.Joined);
+                
                 return Ok("Registration successful");
             }
         }
