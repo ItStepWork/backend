@@ -52,13 +52,16 @@ namespace backend.Controllers
             return Ok("Group updated");
         }
         [HttpGet("GetGroups")]
-        public async Task<ActionResult> GetGroups()
+        public async Task<ActionResult> GetGroups(string userId)
         {
+            await Console.Out.WriteLineAsync(userId);
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             IEnumerable<Group>? groups = await GroupService.GetGroupsAsync();
-            var sort = groups.ToList();
+            List<Group> sort;
+            if (resultValidate.user.Id != userId) sort = groups.Where((i) => i.Users.ContainsKey(userId)).ToList();
+            else sort = groups.ToList();
             sort.Sort((y, x) => Convert.ToInt32(x.AdminId.Equals(resultValidate.user.Id)) - Convert.ToInt32(y.AdminId.Equals(resultValidate.user.Id)));
             sort.Sort((y, x) => Convert.ToInt32(x.Users.ContainsKey(resultValidate.user.Id)) - Convert.ToInt32(y.Users.ContainsKey(resultValidate.user.Id)));
             return Ok(sort);
