@@ -79,7 +79,7 @@ namespace backend.Services
               .Child($"Friends/{userId}")
               .OnceAsync<Friend>();
 
-            var users = await UserService.GetUsersAsync(senderId);
+            var users = await UserService.GetUsersAsync();
 
             if (friends != null && friends.Count > 0 && users != null)
             {
@@ -113,7 +113,7 @@ namespace backend.Services
               .Child($"Friends/{userId}")
               .OnceAsync<Friend>();
 
-            var users = await UserService.GetUsersAsync(senderId);
+            var users = await UserService.GetUsersAsync();
 
             if (friends != null && friends.Count > 0 && users != null)
             {
@@ -147,7 +147,7 @@ namespace backend.Services
               .Child($"Friends/{userId}")
               .OnceAsync<Friend>();
 
-            var users = await UserService.GetUsersAsync(senderId);
+            var users = await UserService.GetUsersAsync();
 
             if (friends != null && friends.Count > 0 && users != null)
             {
@@ -181,7 +181,7 @@ namespace backend.Services
               .Child($"Friends/{userId}")
               .OnceAsync<Friend>();
 
-            var users = await UserService.GetUsersAsync(senderId);
+            var users = await UserService.GetUsersAsync();
 
             if (friends != null && friends.Count > 0 && users != null)
             {
