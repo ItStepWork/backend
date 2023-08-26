@@ -79,7 +79,7 @@ namespace backend.Services
               .Child($"Friends/{userId}")
               .OnceAsync<Friend>();
 
-            var users = await UserService.GetUsersAsync(senderId);
+            var users = await UserService.GetUsersAsync();
 
             if (friends != null && friends.Count > 0 && users != null)
             {
@@ -113,14 +113,14 @@ namespace backend.Services
               .Child($"Friends/{userId}")
               .OnceAsync<Friend>();
 
-            var users = await UserService.GetUsersAsync(senderId);
+            var users = await UserService.GetUsersAsync();
 
             if (friends != null && friends.Count > 0 && users != null)
             {
                 if (senderId == userId)
                 {
                     string?[] filter = friends.Where(x => x.Object.IsConfirmed == false && x.Object.SenderId != senderId).Select(x => x.Object.UserId).ToArray();
-                    var result = users.Where(user => filter.Contains(user.Id));
+                    var result = users.Where(user => filter.Contains(user.Id) && user.Id != senderId);
                     return result;
                 }
                 else
@@ -147,14 +147,14 @@ namespace backend.Services
               .Child($"Friends/{userId}")
               .OnceAsync<Friend>();
 
-            var users = await UserService.GetUsersAsync(senderId);
+            var users = await UserService.GetUsersAsync();
 
             if (friends != null && friends.Count > 0 && users != null)
             {
                 if (senderId == userId)
                 {
                     string?[] filter = friends.Where(x => x.Object.IsConfirmed == false && x.Object.SenderId == senderId).Select(x => x.Object.UserId).ToArray();
-                    var result = users.Where(user => filter.Contains(user.Id));
+                    var result = users.Where(user => filter.Contains(user.Id) && user.Id != senderId);
                     return result;
                 }
                 else
@@ -181,14 +181,14 @@ namespace backend.Services
               .Child($"Friends/{userId}")
               .OnceAsync<Friend>();
 
-            var users = await UserService.GetUsersAsync(senderId);
+            var users = await UserService.GetUsersAsync();
 
             if (friends != null && friends.Count > 0 && users != null)
             {
                 if(senderId == userId)
                 {
                     string?[] filter = friends.Select(x => x.Object.UserId).ToArray();
-                    var result = users.Where(user => !filter.Contains(user.Id));
+                    var result = users.Where(user => !filter.Contains(user.Id) && user.Id != senderId);
                     return result;
                 }
                 else

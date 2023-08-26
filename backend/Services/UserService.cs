@@ -59,6 +59,15 @@ namespace backend.Services
 
             return user;
         }
+        public static async Task<IEnumerable<UserBase>?> GetUsersAsync()
+        {
+            var users = await firebaseDatabase
+              .Child("Users")
+              .OnceAsync<UserBase>();
+
+            return users?
+              .Select(x => x.Object);
+        }
         public static async Task<IEnumerable<UserBase>?> GetUsersAsync(string userId)
         {
             var users = await firebaseDatabase

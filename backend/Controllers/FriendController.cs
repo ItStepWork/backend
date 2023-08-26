@@ -62,8 +62,10 @@ namespace backend.Controllers
         [HttpPost("AddFriend")]
         public async Task<ActionResult> AddFriend(FriendRequest request)
         {
+            if (string.IsNullOrEmpty(request.Id)) return BadRequest("Data is null or empty");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            if (resultValidate.user.Id == request.Id) return Conflict("Trying to add myself");
 
             User? recipient = await UserService.FindUserByIdAsync(request.Id);
             if (recipient == null) return NotFound("Recipient not found!");

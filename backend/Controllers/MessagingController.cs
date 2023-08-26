@@ -1,7 +1,6 @@
 ﻿using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace backend.Controllers
 {
@@ -10,17 +9,17 @@ namespace backend.Controllers
     public class MessagingController : Controller
     {
         [HttpPost("SendMessage")]
-        public async Task<ActionResult> SendMessage([FromForm] MessageRequest data)
+        public async Task<ActionResult> SendMessage([FromForm] MessageRequest request)
         {
-            if (string.IsNullOrEmpty(data.Text)) return BadRequest("Text is null or empty");
-
+            if (string.IsNullOrEmpty(request.Text) || string.IsNullOrEmpty(request.Id)) return BadRequest("Data is null or empty");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            if (resultValidate.user.Id == request.Id) return Conflict("Trying to send a message to yourself");
 
-            User? recipient = await UserService.FindUserByIdAsync(data.Id);
+            User? recipient = await UserService.FindUserByIdAsync(request.Id);
             if (recipient == null) return NotFound("Recipient not found!");
 
-            Message? message = await MessagingService.SendMessageAsync(resultValidate.user.Id, data);
+            Message? message = await MessagingService.SendMessageAsync(resultValidate.user.Id, request);
             if (message == null || message.Id == null) return Conflict("Send message failed");
 
             return Ok("Ok");
