@@ -66,6 +66,31 @@ namespace backend.Controllers
             await UserService.UpdateUserAsync(resultValidate.user.Id, user);
             return Ok("User is Updated");
         }
+
+        [HttpPost("UpdateUserPassword")]
+        public async Task<ActionResult> UpdateUserPassword(ChangePasswordRequest data)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            User user = resultValidate.user;
+
+            // Update user
+            if (data.OldPassword != null)
+            {
+                if (data.NewPassword.Length < 6) return BadRequest("Password less than 6 characters!");
+                if (!BCrypt.Net.BCrypt.Verify(data.OldPassword, user.Password)) return Conflict("Passwords are not the same!");
+               
+                user.Password = BCrypt.Net.BCrypt.HashPassword(data.NewPassword);
+                string[] mailDescription = { "Восстановление пароля в", "Ваш пароль был успешно заменен", "Ваши данные при регистрации:" };
+                await EmailService.SendEmailAsync(user.Email, "Смена пароля на Connections", user.FirstName, user.LastName, user.Joined, data.NewPassword, mailDescription);
+            }
+
+            await UserService.UpdateUserAsync(resultValidate.user.Id, user);
+
+            return Ok("User is Updated");
+        }
+
         [HttpPost("SaveAvatar")]
         public async Task<ActionResult> SaveAvatar(IFormFile file)
         {

@@ -60,8 +60,8 @@ namespace backend.Controllers
                 user.Id = result.Key;
                 await UserService.UpdateUserAsync(result.Key, user);
 
-          
-                await EmailService.SendEmailAsync(userData.Email, "Регистрация на Coonections", userData.FirstName, userData.LastName, user.Joined);
+                string[] mailDescription = { "Добро пожаловать в семью", "Спасибо за регистрацию на в нашей социальной сети", "Ваши данные в данный момент:" };
+                await EmailService.SendEmailAsync(userData.Email, "Регистрация на Coonections", userData.FirstName, userData.LastName, user.Joined, user.Password, mailDescription);
                 
                 return Ok("Registration successful");
             }

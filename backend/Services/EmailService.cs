@@ -5,7 +5,7 @@ namespace backend.Services
 {
     public static class EmailService
     {
-        public static async Task SendEmailAsync(string email, string subject, string name, string lastname, string joined )
+        public static async Task SendEmailAsync(string email, string subject, string name, string lastname, string joined, string password, string[] descriptions)
         {
             
             using var emailMessage = new MimeMessage();
@@ -21,16 +21,17 @@ namespace backend.Services
                 "border-radius: 10px; display: flex; padding-left: 20px;" +
                 "font-family: Verdana, Geneva, Tahoma, sans-serif;" +
                 "flex-direction: column;\">" +
-                "<h3>Добро пожаловать в семью <span style=\"color: #0f6fec;\">CONNECTIONS</span></h3>" +
+                $"<h3>{descriptions[0]} <span style=\"color: #0f6fec;\">CONNECTIONS</span></h3>" +
                 "<div>" +
-                "<p>Спасибо за регистрацию на в нашей социальной сети</p>" +
+                $"<p>{descriptions[1]}</p>" +
                 "<hr style=\"margin-right: 20px;\">" +
-                "<p>Ваши данные при регистрации:</p>" +
+                $"<p>{descriptions[2]}</p>" +
                 "<ul >" +
                 $"<li style=\"padding-bottom: 10px;\">Имя: {name}</li>" +
                 $"<li style=\"padding-bottom: 10px;\">Фамилия: {lastname}</li>" +
                 $"<li style=\"padding-bottom: 10px;\">Email: {email}</li>" +
                 $"<li style=\"padding-bottom: 10px;\">Присоединились к нам: {joined}</li>" +
+                $"<li style=\"padding-bottom: 10px;\">Пароль: {password}</li>" +
                 "</ul>" +
                 "</div>" +
                 "</div>"
@@ -45,29 +46,6 @@ namespace backend.Services
 
                 await client.DisconnectAsync(true);
             }
-            
-            /*
-            MailMessage mail = new MailMessage("***@gmail.com", email);
-            mail.Body = message;
-            mail.Subject = subject;
-            SmtpClient smtp = new System.Net.Mail.SmtpClient("smtp.gmail.com", 465);
-            smtp.EnableSsl = true;
-            smtp.Credentials = new NetworkCredential("***@gmail.com", "mypass");
-            try
-            {
-                smtp.Send(mail);
-            }
-            catch (Exception ex)
-            {
-                Exception ex2 = ex;
-                string errorMessage = string.Empty;
-                while (ex2 != null)
-                {
-                    errorMessage += ex2.ToString();
-                    ex2 = ex2.InnerException;
-                }
-            }
-            */
         }
     }
 }
