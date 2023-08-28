@@ -14,7 +14,16 @@ namespace backend.Services
               .Child($"Photos/{userId}")
               .OnceAsync<Photo>();
 
-            return result?.Select(x => x.Object);
+            var photos = result?.Select(x => x.Object);
+            if (photos == null) return new Photo[] { };
+
+            foreach (var photo in photos)
+            {
+                var sorted = photo.Comments.OrderBy(x => x.Value.CreateTime).ToDictionary(x => x.Key, x => x.Value);
+                photo.Comments = sorted;
+            }
+
+            return photos;
         }
         public static async Task<IEnumerable<Photo>?> GetPhotosAsync(string userId, string albumId)
         {
@@ -22,7 +31,16 @@ namespace backend.Services
               .Child($"Photos/{userId}")
               .OnceAsync<Photo>();
 
-            return result?.Where(x=> x.Object.AlbumId == albumId).Select(x => x.Object);
+            var photos = result?.Where(x => x.Object.AlbumId == albumId).Select(x => x.Object);
+            if (photos == null) return new Photo[] { };
+
+            foreach (var photo in photos)
+            {
+                var sorted = photo.Comments.OrderBy(x => x.Value.CreateTime).ToDictionary(x => x.Key, x => x.Value);
+                photo.Comments = sorted;
+            }
+
+            return photos;
         }
         public static async Task<Photo?> GetPhotoAsync(string userId, string photoId)
         {
@@ -31,6 +49,9 @@ namespace backend.Services
               .Child(userId)
               .Child(photoId)
               .OnceSingleAsync<Photo>();
+
+            var sorted = result.Comments.OrderBy(x => x.Value.CreateTime).ToDictionary(x => x.Key, x => x.Value);
+            result.Comments = sorted;
 
             return result;
         }
