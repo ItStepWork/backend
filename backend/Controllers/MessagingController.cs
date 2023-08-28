@@ -42,6 +42,24 @@ namespace backend.Controllers
             await MessagingService.RemoveDialogAsync(resultValidate.user.Id, id);
             return Ok("Ok");
         }
+        [HttpDelete("RemoveMessageFull")]
+        public async Task<ActionResult> RemoveMessageFull(string id)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await MessagingService.RemoveMessageAsync(resultValidate.user.Id, id, true);
+            return Ok("Ok");
+        }
+        [HttpDelete("RemoveMessage")]
+        public async Task<ActionResult> RemoveMessage(string id)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await MessagingService.RemoveMessageAsync(resultValidate.user.Id, id, false);
+            return Ok("Ok");
+        }
         [HttpGet("GetMessages")]
         public async Task<ActionResult> GetMessages(string id)
         {

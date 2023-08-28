@@ -1,6 +1,8 @@
 ﻿using backend.Models;
 using Firebase.Database;
 using Firebase.Database.Query;
+using Newtonsoft.Json;
+using Org.BouncyCastle.Cms;
 
 namespace backend.Services
 {
@@ -55,6 +57,7 @@ namespace backend.Services
             message.Text = data.Text;
             message.CreateTime = DateTime.UtcNow;
             message.SenderId = senderId;
+            message.RecipientId = data.Id;
             message.Status = MessageStatus.Unread;
 
             var result = await firebaseDatabase
@@ -76,6 +79,33 @@ namespace backend.Services
                 return message;
             }
             else return null;
+        }
+        public static async Task RemoveMessageAsync(string userId, string messageId, bool isFull)
+        {
+            var dialogs = await firebaseDatabase.Child($"Messages/{userId}")
+                .OnceAsync<Dictionary<string, Message>>();
+
+            var result = dialogs.Where(dialog => dialog.Object.ContainsKey(messageId)).FirstOrDefault();
+            if (result != null)
+            {
+                var message = result.Object[messageId];
+                if (message?.RecipientId != null)
+                {
+                    if(userId == message.SenderId)
+                    {
+                        await firebaseDatabase.Child($"Messages/{userId}/{message.RecipientId}/{messageId}").DeleteAsync();
+                        if (isFull)
+                        {
+                            await firebaseDatabase.Child($"Messages/{message.RecipientId}/{userId}/{messageId}").DeleteAsync();
+                        }
+                    }
+                    else
+                    {
+                        await firebaseDatabase.Child($"Messages/{userId}/{message.SenderId}/{messageId}").DeleteAsync();
+                    }
+                    
+                }
+            }
         }
     }
 }
