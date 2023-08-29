@@ -16,6 +16,14 @@ namespace backend.Services
               .Child("Groups")
               .PostAsync(group);
         }
+        public static async Task RemuveGroupAsync(string groupId)
+        {
+            await firebaseDatabase
+              .Child("Groups")
+              .Child(groupId)
+              .DeleteAsync();
+            await UserService.RemoveFileAsync("Groups", groupId);
+        }
         public static async Task<IEnumerable<Group>?> GetGroupsAsync()
         {
             var groups = await firebaseDatabase

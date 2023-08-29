@@ -127,5 +127,12 @@ namespace backend.Services
                  .PutAsync(stream);
             return task;
         }
+        public static async Task RemoveFileAsync(string child, string name)
+        {
+            await firebaseStorage
+                 .Child(child)
+                 .Child(name + ".png")
+                 .DeleteAsync();
+        }
     }
 }

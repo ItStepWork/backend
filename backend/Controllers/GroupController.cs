@@ -28,6 +28,15 @@ namespace backend.Controllers
             await GroupService.UpdateGroupAsync(result.Key, group);
             return Ok("Group added");
         }
+        [HttpDelete("DeleteGroup")]
+        public async Task<ActionResult> DeleteGroup(string id)
+        {;
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await GroupService.RemuveGroupAsync(id);
+            return Ok("Group deleted");
+        }
         [HttpPost("UpdateAvatar")]
         public async Task<ActionResult> UpdateAvatar([FromForm] GroupRequest groupRequest)
         {
@@ -54,13 +63,12 @@ namespace backend.Controllers
         [HttpGet("GetGroups")]
         public async Task<ActionResult> GetGroups(string userId)
         {
-            await Console.Out.WriteLineAsync(userId);
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             IEnumerable<Group>? groups = await GroupService.GetGroupsAsync();
             List<Group> sort;
-            if (resultValidate.user.Id != userId) sort = groups.Where((i) => i.Users.ContainsKey(userId)).ToList();
+            if (resultValidate.user.Id != userId) sort = groups.Where((i) => i.Users.ContainsKey(userId) && i.Users[userId]).ToList();
             else sort = groups.ToList();
             sort.Sort((y, x) => Convert.ToInt32(x.AdminId.Equals(resultValidate.user.Id)) - Convert.ToInt32(y.AdminId.Equals(resultValidate.user.Id)));
             sort.Sort((y, x) => Convert.ToInt32(x.Users.ContainsKey(resultValidate.user.Id)) - Convert.ToInt32(y.Users.ContainsKey(resultValidate.user.Id)));
