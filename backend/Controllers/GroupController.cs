@@ -34,6 +34,8 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
+            var group = await GroupService.GetGroupAsync(id);
+            if(group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
             await GroupService.RemuveGroupAsync(id);
             return Ok("Group deleted");
         }
@@ -43,6 +45,7 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
             var group = await GroupService.GetGroupAsync(groupRequest.Id);
+            if (group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
             var url = await UserService.SaveFileAsync(groupRequest.File, "Groups", group.Id);
             group.PictureUrl = url;
             await GroupService.UpdateGroupAsync(group.Id, group);
@@ -54,6 +57,7 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
             var group = await GroupService.GetGroupAsync(groupRequest.Id);
+            if (group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
             group.Description = groupRequest.Description;
             group.Audience = groupRequest.Audience;
             group.Name = groupRequest.Name;
@@ -110,6 +114,8 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
+            var group = await GroupService.GetGroupAsync(groupRequest.Id);
+            if (group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
             await GroupService.RemuveUserFromGroupAsync(groupRequest.Id, groupRequest.UserId);
             return Ok("Removed");
         }
@@ -158,6 +164,48 @@ namespace backend.Controllers
             var users = group?.Users?.Where((a) => a.Value == false).Select((a) => a.Key);
             var result = await UserService.GetUsersAsync(users);
             return Ok(result);
+        }
+        [HttpPost("AddPhoto")]
+        public async Task<ActionResult> AddPhoto([FromForm] GroupRequest groupRequest)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var group = await GroupService.GetGroupAsync(groupRequest.Id);
+            if (group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
+
+            var photo = await GalleryService.AddPhotoAsync(groupRequest.Id);
+
+            var url = await UserService.SaveFileAsync(groupRequest.File, "Photos", photo.Key);
+            if (url == null) return Conflict("Save photo failed");
+
+            Photo result = photo.Object;
+            result.Id = photo.Key;
+            result.Url = url;
+
+            await GalleryService.UpdatePhotoAsync(groupRequest.Id, photo.Key, result);
+
+            return Ok("Ok");
+        }
+        [HttpGet("GetPhotos")]
+        public async Task<ActionResult> GetPhotos(string groupId)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var photos = await GalleryService.GetPhotosAsync(groupId);
+            return Ok(photos);
+        }
+        [HttpPost("RemovePhoto")]
+        public async Task<ActionResult> RemovePhoto(GroupRequest groupRequest) 
+        { 
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var group = await GroupService.GetGroupAsync(groupRequest.Id);
+            if (group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
+            await GalleryService.RemovePhotoAsync(groupRequest.Id, groupRequest.PhotoId);
+            return Ok("Ok");
         }
     }
 }

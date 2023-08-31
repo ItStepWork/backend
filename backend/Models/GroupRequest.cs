@@ -7,6 +7,7 @@ namespace backend.Models
         public string? Id { get; set; }
         public string? Name { get; set; }
         public string? UserId { get; set; }
+        public string? PhotoId { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Audience? Audience { get; set; }
         public string? Description { get; set; }
