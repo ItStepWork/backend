@@ -205,6 +205,7 @@ namespace backend.Controllers
             var group = await GroupService.GetGroupAsync(groupRequest.Id);
             if (group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
             await GalleryService.RemovePhotoAsync(groupRequest.Id, groupRequest.PhotoId);
+            await UserService.RemoveFileAsync("Groups", groupRequest.PhotoId);
             return Ok("Ok");
         }
     }

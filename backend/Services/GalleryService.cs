@@ -73,6 +73,12 @@ namespace backend.Services
               .Child($"Photos/{userId}/{photoId}")
               .DeleteAsync();
         }
+        public static async Task RemovePhotosFolderAsync(string userId)
+        {
+            await firebaseDatabase
+              .Child($"Photos/{userId}")
+              .DeleteAsync();
+        }
         public static async Task SendCommentPhotoAsync(string senderId, string userId, string photoId, string text)
         {
             var photo = await firebaseDatabase

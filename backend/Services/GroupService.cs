@@ -23,6 +23,13 @@ namespace backend.Services
               .Child(groupId)
               .DeleteAsync();
             await UserService.RemoveFileAsync("Groups", groupId);
+            var photos = await GalleryService.GetPhotosAsync(groupId);
+            await GalleryService.RemovePhotosFolderAsync(groupId);
+            foreach (var item in photos)
+            {
+                await UserService.RemoveFileAsync("Photos", item.Id);
+            }
+
         }
         public static async Task<IEnumerable<Group>?> GetGroupsAsync()
         {
