@@ -176,7 +176,7 @@ namespace backend.Controllers
 
             var photo = await GalleryService.AddPhotoAsync(groupRequest.Id);
 
-            var url = await UserService.SaveFileAsync(groupRequest.File, "Photos", photo.Key);
+            var url = await UserService.SaveFileAsync(groupRequest.File, "Groups", photo.Key);
             if (url == null) return Conflict("Save photo failed");
 
             Photo result = photo.Object;

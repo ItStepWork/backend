@@ -27,7 +27,7 @@ namespace backend.Services
             await GalleryService.RemovePhotosFolderAsync(groupId);
             foreach (var item in photos)
             {
-                await UserService.RemoveFileAsync("Photos", item.Id);
+                await UserService.RemoveFileAsync("Groups", item.Id);
             }
 
         }
