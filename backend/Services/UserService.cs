@@ -77,14 +77,14 @@ namespace backend.Services
             return users?
               .Where(u=>u.Key != userId).Select(x => x.Object);
         }
-        public static async Task<IEnumerable<UserBase>?> GetUsersAsync(IEnumerable<string> users)
+        public static async Task<List<UserBase>?> GetUsersAsync(IEnumerable<string> users)
         {
             var result = await firebaseDatabase
               .Child("Users")
               .OnceAsync<UserBase>();
 
             return result?
-              .Where(u => users.Contains(u.Key)).Select(x => x.Object);
+              .Where(u => users.Contains(u.Key)).Select(x => x.Object).ToList();
         }
         public static async Task UpdateUserAsync(string userId, User user)
         {

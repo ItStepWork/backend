@@ -1,5 +1,6 @@
 ﻿using backend.Models;
 using backend.Services;
+using MailKit.Search;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
@@ -141,6 +142,9 @@ namespace backend.Controllers
             var group = await GroupService.GetGroupAsync(id);
             var users = group?.Users?.Select((a) => a.Key);
             var result = await UserService.GetUsersAsync(users);
+            //result.OrderBy(i=>i.FirstName).ThenBy(i => i.LastName);
+            result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
+            result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
             return Ok(result);
         }
         [HttpGet("GetMembersGroup")]
@@ -150,8 +154,11 @@ namespace backend.Controllers
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             var group = await GroupService.GetGroupAsync(id);
-            var users = group?.Users?.Where((a)=>a.Value==true).Select((a) => a.Key);
+            var users = group?.Users?.Where((a)=>a.Value==true).Select((a) => a.Key).ToList();
             var result = await UserService.GetUsersAsync(users);
+            //result?.Sort((left, right) => left.FirstName.CompareTo(right.FirstName));
+            result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
+            result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
             return Ok(result);
         }
         [HttpGet("GetRequestsToGroup")]
@@ -163,6 +170,9 @@ namespace backend.Controllers
             var group = await GroupService.GetGroupAsync(id);
             var users = group?.Users?.Where((a) => a.Value == false).Select((a) => a.Key);
             var result = await UserService.GetUsersAsync(users);
+            //result.OrderBy(i => i.FirstName).ThenBy(i => i.LastName);
+            result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
+            result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
             return Ok(result);
         }
         [HttpPost("AddPhoto")]
