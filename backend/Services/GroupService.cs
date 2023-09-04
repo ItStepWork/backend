@@ -39,18 +39,12 @@ namespace backend.Services
 
             return groups?.Select(x => x.Object);
         }
-        public static async Task<Group> GetGroupAsync(string id)
+        public static async Task<Group?> GetGroupAsync(string id)
         {
             var group = await firebaseDatabase
               .Child($"Groups")
               .Child(id).OnceSingleAsync<Group>();
             return group;
-        }
-        public static async Task<Group?> GetGroupByIdAsync(string id)
-        {
-            var groupStr = await firebaseDatabase
-                .Child($"Groups/{id}").OnceAsJsonAsync();
-            return JsonConvert.DeserializeObject<Group>(groupStr);
         }
         public static async Task UpdateGroupAsync(string groupId, Group group)
         {

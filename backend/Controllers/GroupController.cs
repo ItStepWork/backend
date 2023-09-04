@@ -94,7 +94,7 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            Group? group = await GroupService.GetGroupByIdAsync(groupRequest.Id);
+            Group? group = await GroupService.GetGroupAsync(groupRequest.Id);
             if (group == null) return NotFound("Group Not Found!");
             group.Users[resultValidate.user.Id] = group.Audience == Audience.Private ? false : true;
             await GroupService.UpdateGroupAsync(groupRequest.Id, group);
