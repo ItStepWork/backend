@@ -51,7 +51,7 @@ namespace backend.Services
 
             return result;
         }
-        public static async Task<Message?> SendMessageAsync(string senderId, MessageRequest data)
+        public static async Task<Message?> SendMessageAsync(string senderId, Request data)
         {
             Message message = new Message();
             message.Text = data.Text;

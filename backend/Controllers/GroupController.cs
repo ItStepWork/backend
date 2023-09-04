@@ -10,7 +10,7 @@ namespace backend.Controllers
     public class GroupController : Controller
     {
         [HttpPost("AddGroup")]
-        public async Task<ActionResult> AddGroup([FromForm] GroupRequest groupRequest)
+        public async Task<ActionResult> AddGroup([FromForm] Request groupRequest)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -41,7 +41,7 @@ namespace backend.Controllers
             return Ok("Group deleted");
         }
         [HttpPost("UpdateAvatar")]
-        public async Task<ActionResult> UpdateAvatar([FromForm] GroupRequest groupRequest)
+        public async Task<ActionResult> UpdateAvatar([FromForm] Request groupRequest)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -53,7 +53,7 @@ namespace backend.Controllers
             return Ok("Avatar updated");
         }
         [HttpPost("UpdateGroup")]
-        public async Task<ActionResult> UpdateGroup([FromForm] GroupRequest groupRequest)
+        public async Task<ActionResult> UpdateGroup([FromForm] Request groupRequest)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -89,7 +89,7 @@ namespace backend.Controllers
             return Ok(group);
         }
         [HttpPost("JoinGroup")]
-        public async Task<ActionResult> JoinGroup(GroupRequest groupRequest)
+        public async Task<ActionResult> JoinGroup(Request groupRequest)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -110,7 +110,7 @@ namespace backend.Controllers
             return Ok("You leave the group");
         }
         [HttpPost("RemoveUserFromGroup")]
-        public async Task<ActionResult> RemoveUserFromGroup(GroupRequest groupRequest)
+        public async Task<ActionResult> RemoveUserFromGroup(Request groupRequest)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -121,7 +121,7 @@ namespace backend.Controllers
             return Ok("Removed");
         }
         [HttpPost("AcceptUserToGroup")]
-        public async Task<ActionResult> AcceptUserToGroup(GroupRequest groupRequest)
+        public async Task<ActionResult> AcceptUserToGroup(Request groupRequest)
         {
             if (string.IsNullOrEmpty(groupRequest.UserId)|| string.IsNullOrEmpty(groupRequest.Id)) return BadRequest("GroupRequest is null or empty");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
@@ -176,7 +176,7 @@ namespace backend.Controllers
             return Ok(result);
         }
         [HttpPost("AddPhoto")]
-        public async Task<ActionResult> AddPhoto([FromForm] GroupRequest groupRequest)
+        public async Task<ActionResult> AddPhoto([FromForm] Request groupRequest)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -207,7 +207,7 @@ namespace backend.Controllers
             return Ok(photos);
         }
         [HttpPost("RemovePhoto")]
-        public async Task<ActionResult> RemovePhoto(GroupRequest groupRequest) 
+        public async Task<ActionResult> RemovePhoto(Request groupRequest) 
         { 
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);

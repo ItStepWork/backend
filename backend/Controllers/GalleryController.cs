@@ -56,7 +56,7 @@ namespace backend.Controllers
             return Ok("Ok");
         }
         [HttpPost("SendCommentPhoto")]
-        public async Task<ActionResult> SendCommentPhoto(GalleryRequest request)
+        public async Task<ActionResult> SendCommentPhoto(Request request)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -65,7 +65,7 @@ namespace backend.Controllers
             return Ok("Ok");
         }
         [HttpPost("SetLikePhoto")]
-        public async Task<ActionResult> SetLikePhoto(GalleryRequest request)
+        public async Task<ActionResult> SetLikePhoto(Request request)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -74,7 +74,7 @@ namespace backend.Controllers
             return Ok("Ok");
         }
         [HttpPost("SetAvatar")]
-        public async Task<ActionResult> SetAvatar(GalleryRequest request)
+        public async Task<ActionResult> SetAvatar(Request request)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -84,7 +84,7 @@ namespace backend.Controllers
             return Ok("Ok");
         }
         [HttpPost("SetBackground")]
-        public async Task<ActionResult> SetBackground(GalleryRequest request)
+        public async Task<ActionResult> SetBackground(Request request)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -94,7 +94,7 @@ namespace backend.Controllers
             return Ok("Ok");
         }
         [HttpPost("SetAlbum")]
-        public async Task<ActionResult> SetAlbum(GalleryRequest request)
+        public async Task<ActionResult> SetAlbum(Request request)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -125,7 +125,7 @@ namespace backend.Controllers
             return Ok(result);
         }
         [HttpPost("AddAlbum")]
-        public async Task<ActionResult> AddAlbum([FromForm] GalleryRequest request)
+        public async Task<ActionResult> AddAlbum([FromForm]Request request)
         {
             if (string.IsNullOrEmpty(request.Name)) return BadRequest("Name is null or empty");
 

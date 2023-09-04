@@ -68,7 +68,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("UpdateUserPassword")]
-        public async Task<ActionResult> UpdateUserPassword(ChangePasswordRequest data)
+        public async Task<ActionResult> UpdateUserPassword(Request data)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);

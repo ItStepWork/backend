@@ -9,7 +9,7 @@ namespace backend.Controllers
     public class MessagingController : Controller
     {
         [HttpPost("SendMessage")]
-        public async Task<ActionResult> SendMessage([FromForm] MessageRequest request)
+        public async Task<ActionResult> SendMessage([FromForm] Request request)
         {
             if (string.IsNullOrEmpty(request.Text) || string.IsNullOrEmpty(request.Id)) return BadRequest("Data is null or empty");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);

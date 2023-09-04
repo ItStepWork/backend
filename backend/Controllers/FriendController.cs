@@ -60,7 +60,7 @@ namespace backend.Controllers
             return Ok(result);
         }
         [HttpPost("AddFriend")]
-        public async Task<ActionResult> AddFriend(FriendRequest request)
+        public async Task<ActionResult> AddFriend(Request request)
         {
             if (string.IsNullOrEmpty(request.Id)) return BadRequest("Data is null or empty");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
@@ -79,7 +79,7 @@ namespace backend.Controllers
             else return Ok("Friend invite sent");
         }
         [HttpPost("ConfirmFriend")]
-        public async Task<ActionResult> ConfirmFriend(FriendRequest request)
+        public async Task<ActionResult> ConfirmFriend(Request request)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
