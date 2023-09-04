@@ -9,10 +9,10 @@ namespace backend.Services
         private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
         public static async Task<bool> AddFriendAsync(string senderId, string recipientId)
         {
-            Friend recipient = new Friend();
+            FriendRequest recipient = new FriendRequest();
             recipient.UserId = senderId;
             recipient.SenderId = senderId;
-            Friend sender = new Friend();
+            FriendRequest sender = new FriendRequest();
             sender.UserId = recipientId;
             sender.SenderId = senderId;
 
@@ -21,14 +21,14 @@ namespace backend.Services
 
             return true;
         }
-        public static async Task<Friend?> FindFriendAsync(string senderId, string recipientId)
+        public static async Task<FriendRequest?> FindFriendAsync(string senderId, string recipientId)
         {
             return await firebaseDatabase
               .Child($"Friends/{senderId}")
               .Child(recipientId)
-              .OnceSingleAsync<Friend>();
+              .OnceSingleAsync<FriendRequest>();
         }
-        private static async Task UpdateFriendAsync(string senderId, string recipientId, Friend friend)
+        private static async Task UpdateFriendAsync(string senderId, string recipientId, FriendRequest friend)
         {
             await firebaseDatabase
               .Child("Friends")
@@ -64,11 +64,11 @@ namespace backend.Services
             }
             else return false;
         }
-        public static async Task<IEnumerable<Friend>?> GetFriendsAsync(string id)
+        public static async Task<IEnumerable<FriendRequest>?> GetFriendsAsync(string id)
         {
             var friends = await firebaseDatabase
               .Child($"Friends/{id}")
-              .OnceAsync<Friend>();
+              .OnceAsync<FriendRequest>();
 
             return friends?
               .Select(x => x.Object);
@@ -77,7 +77,7 @@ namespace backend.Services
         {
             var friends = await firebaseDatabase
               .Child($"Friends/{userId}")
-              .OnceAsync<Friend>();
+              .OnceAsync<FriendRequest>();
 
             var users = await UserService.GetUsersAsync();
 
@@ -93,7 +93,7 @@ namespace backend.Services
                 {
                     var friendsSender = await firebaseDatabase
                       .Child($"Friends/{senderId}")
-                      .OnceAsync<Friend>();
+                      .OnceAsync<FriendRequest>();
 
                     if (friendsSender != null && friendsSender.Count > 0)
                     {
@@ -111,7 +111,7 @@ namespace backend.Services
         {
             var friends = await firebaseDatabase
               .Child($"Friends/{userId}")
-              .OnceAsync<Friend>();
+              .OnceAsync<FriendRequest>();
 
             var users = await UserService.GetUsersAsync();
 
@@ -127,7 +127,7 @@ namespace backend.Services
                 {
                     var friendsSender = await firebaseDatabase
                       .Child($"Friends/{senderId}")
-                      .OnceAsync<Friend>();
+                      .OnceAsync<FriendRequest>();
 
                     if (friendsSender != null && friendsSender.Count > 0)
                     {
@@ -145,7 +145,7 @@ namespace backend.Services
         {
             var friends = await firebaseDatabase
               .Child($"Friends/{userId}")
-              .OnceAsync<Friend>();
+              .OnceAsync<FriendRequest>();
 
             var users = await UserService.GetUsersAsync();
 
@@ -161,7 +161,7 @@ namespace backend.Services
                 {
                     var friendsSender = await firebaseDatabase
                       .Child($"Friends/{senderId}")
-                      .OnceAsync<Friend>();
+                      .OnceAsync<FriendRequest>();
 
                     if (friendsSender != null && friendsSender.Count > 0)
                     {
@@ -179,7 +179,7 @@ namespace backend.Services
         {
             var friends = await firebaseDatabase
               .Child($"Friends/{userId}")
-              .OnceAsync<Friend>();
+              .OnceAsync<FriendRequest>();
 
             var users = await UserService.GetUsersAsync();
 
@@ -195,7 +195,7 @@ namespace backend.Services
                 {
                     var friendsSender = await firebaseDatabase
                       .Child($"Friends/{senderId}")
-                      .OnceAsync<Friend>();
+                      .OnceAsync<FriendRequest>();
 
                     string?[] filter = friends.Where(x => x.Object.IsConfirmed == true).Select(x => x.Object.UserId).ToArray();
                     string?[] filterSender = friendsSender.Select(x => x.Object.UserId).ToArray();

@@ -314,7 +314,7 @@ namespace backend.Controllers
                         if (DateTime.UtcNow > start)
                         {
                             string json = JsonConvert.SerializeObject(data.Object);
-                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, Friend>>(json);
+                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, FriendRequest>>(json);
                             if (dictionary != null)
                             {
                                 foreach (var friend in dictionary)
@@ -345,7 +345,7 @@ namespace backend.Controllers
                         else
                         {
                             string json = JsonConvert.SerializeObject(data.Object);
-                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, Friend>>(json);
+                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, FriendRequest>>(json);
                             if (dictionary != null)
                             {
                                 foreach (var item in dictionary)

@@ -1,9 +1,10 @@
-﻿namespace backend.Models
+﻿using System.Text.Json.Serialization;
+
+namespace backend.Models
 {
-    public class Friend
+    public class Friend: UserBase
     {
-        public string? SenderId { get; set; }
-        public string? UserId { get; set; }
-        public bool IsConfirmed { get; set; }
+        [JsonConverter(typeof(JsonStringEnumConverter))]
+        public FriendStatus FriendStatus { get; set; }
     }
 }
