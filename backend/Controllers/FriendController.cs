@@ -9,12 +9,12 @@ namespace backend.Controllers
     public class FriendController : Controller
     {
         [HttpGet("GetFriends")]
-        public async Task<ActionResult> GetFriends()
+        public async Task<ActionResult> GetFriends(string id)
         {
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var result = await FriendService.GetFriendsAsync(resultValidate.user.Id);
+            var result = await FriendService.GetFriendsAsync(resultValidate.user.Id, id);
 
             return Ok(result);
         }

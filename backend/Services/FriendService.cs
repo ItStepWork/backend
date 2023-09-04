@@ -64,14 +64,118 @@ namespace backend.Services
             }
             else return false;
         }
-        public static async Task<IEnumerable<FriendRequest>?> GetFriendsAsync(string id)
+        public static async Task<IEnumerable<Friend?>?> GetFriendsAsync(string senderId, string userId)
         {
-            var friends = await firebaseDatabase
-              .Child($"Friends/{id}")
-              .OnceAsync<FriendRequest>();
+            if (senderId == userId)
+            {
+                var result = await firebaseDatabase
+                  .Child($"Friends/{userId}")
+                  .OnceAsync<FriendRequest>();
 
-            return friends?
-              .Select(x => x.Object);
+                var friends = result.Select(item => item.Object);
+                var friensConfirmed = friends.Where(item => item.IsConfirmed == true).Select(item => item.UserId).ToArray();
+                var friensUnconfirmed = friends.Where(item => item.IsConfirmed == false && item.SenderId != senderId).Select(item => item.UserId).ToArray();
+                var friensWaiting = friends.Where(item => item.IsConfirmed == false && item.SenderId == senderId).Select(item => item.UserId).ToArray();
+                List<Friend?> list = new();
+                var users = await UserService.GetUsersAsync();
+                var usersUnconfirmed = users?.Where(user=> friensUnconfirmed.Contains(user.Id)).Select(user=>user as Friend);
+                if(usersUnconfirmed != null)
+                {
+                    foreach (var user in usersUnconfirmed)
+                    {
+                        if(user!= null) user.FriendStatus = FriendStatus.Unconfirmed;
+                    }
+                }
+                var usersWaiting = users?.Where(user=> friensWaiting.Contains(user.Id)).Select(user => user as Friend);
+                if (usersWaiting != null)
+                {
+                    foreach (var user in usersWaiting)
+                    {
+                        if (user != null) user.FriendStatus = FriendStatus.Waiting;
+                    }
+                }
+                var userConfirmed = users?.Where(user=> friensConfirmed.Contains(user.Id)).Select(user => user as Friend);
+                if (userConfirmed != null)
+                {
+                    foreach (var user in userConfirmed)
+                    {
+                        if (user != null) user.FriendStatus = FriendStatus.Confirmed;
+                    }
+                }
+                var userOther = users?.Where(user => !friensUnconfirmed.Contains(user.Id) && !friensWaiting.Contains(user.Id) && !friensConfirmed.Contains(user.Id)).Select(user => user as Friend);
+                if (userOther != null)
+                {
+                    foreach (var user in userOther)
+                    {
+                        if (user != null) user.FriendStatus = FriendStatus.Other;
+                    }
+                }
+                if (usersUnconfirmed != null) list.AddRange(usersUnconfirmed);
+                if (usersWaiting != null) list.AddRange(usersWaiting);
+                if (userConfirmed != null) list.AddRange(userConfirmed);
+                if (userOther != null) list.AddRange(userOther);
+                return list;
+            }
+            else
+            {
+                var result = await firebaseDatabase
+                  .Child($"Friends/{userId}")
+                  .OnceAsync<FriendRequest>();
+
+                var userFriends = result.Select(item => item.Object);
+                var userFriensConfirmed = userFriends.Where(item => item.IsConfirmed == true).Select(item => item.UserId).ToArray();
+
+
+                var resultFriends = await firebaseDatabase
+                  .Child($"Friends/{senderId}")
+                  .OnceAsync<FriendRequest>();
+                var friends = resultFriends.Select(item => item.Object);
+                var friensConfirmed = friends.Where(item => userFriensConfirmed.Contains(item.UserId) && item.IsConfirmed == true).Select(item => item.UserId).ToArray();
+                var friensUnconfirmed = friends.Where(item => userFriensConfirmed.Contains(item.UserId) && item.IsConfirmed == false && item.SenderId != senderId).Select(item => item.UserId).ToArray();
+                var friensWaiting = friends.Where(item => userFriensConfirmed.Contains(item.UserId) && item.IsConfirmed == false && item.SenderId == senderId).Select(item => item.UserId).ToArray();
+
+
+                var allUsers = await UserService.GetUsersAsync();
+                var users = allUsers?.Where(user => userFriensConfirmed.Contains(user.Id));
+                List<Friend?> list = new();
+                var usersUnconfirmed = users?.Where(user => friensUnconfirmed.Contains(user.Id)).Select(user => user as Friend);
+                if (usersUnconfirmed != null)
+                {
+                    foreach (var user in usersUnconfirmed)
+                    {
+                        if (user != null) user.FriendStatus = FriendStatus.Unconfirmed;
+                    }
+                }
+                var usersWaiting = users?.Where(user => friensWaiting.Contains(user.Id)).Select(user => user as Friend);
+                if (usersWaiting != null)
+                {
+                    foreach (var user in usersWaiting)
+                    {
+                        if (user != null) user.FriendStatus = FriendStatus.Waiting;
+                    }
+                }
+                var userConfirmed = users?.Where(user => friensConfirmed.Contains(user.Id)).Select(user => user as Friend);
+                if (userConfirmed != null)
+                {
+                    foreach (var user in userConfirmed)
+                    {
+                        if (user != null) user.FriendStatus = FriendStatus.Confirmed;
+                    }
+                }
+                var userOther = users?.Where(user => !friensUnconfirmed.Contains(user.Id) && !friensWaiting.Contains(user.Id) && !friensConfirmed.Contains(user.Id)).Select(user => user as Friend);
+                if (userOther != null)
+                {
+                    foreach (var user in userOther)
+                    {
+                        if (user != null) user.FriendStatus = FriendStatus.Other;
+                    }
+                }
+                if (usersUnconfirmed != null) list.AddRange(usersUnconfirmed);
+                if (usersWaiting != null) list.AddRange(usersWaiting);
+                if (userConfirmed != null) list.AddRange(userConfirmed);
+                if (userOther != null) list.AddRange(userOther);
+                return list;
+            }
         }
         public static async Task<IEnumerable<UserBase>> GetConfirmedFriends(string senderId, string userId)
         {
