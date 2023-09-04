@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Net.WebSockets;
 using System.Reactive.Linq;
 using System.Text;
@@ -273,6 +274,95 @@ namespace backend.Controllers
                     {
                         await Task.Delay(1000);
                     }
+                }
+            }
+        }
+        [Authorize]
+        [HttpGet("SubscribeToFriendRequest")]
+        public async Task SubscribeToFriendRequest()
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null)
+            {
+                HttpContext.Response.StatusCode = 400;
+            }
+            else
+            {
+                using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync("client");
+                var startTime = DateTime.UtcNow;
+                var endTime = DateTime.UtcNow.AddMinutes(2);
+                _ = Task.Run(async () =>
+                {
+                    var buffer = new byte[1024];
+                    while (webSocket.State == WebSocketState.Open)
+                    {
+                        var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                        if (webSocket.State == WebSocketState.Open)
+                        {
+                            endTime = DateTime.UtcNow.AddMinutes(2);
+                        }
+                    }
+                });
+                List<string> friends = new();
+                DateTime start = DateTime.UtcNow.AddSeconds(5);
+                FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
+                firebaseDatabase.Child($"Friends/{resultValidate.user.Id}").AsObservable<object>().Subscribe(async data =>
+                {
+                    if (DateTime.UtcNow < endTime)
+                    {
+                        if (DateTime.UtcNow > start)
+                        {
+                            string json = JsonConvert.SerializeObject(data.Object);
+                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, Friend>>(json);
+                            if (dictionary != null)
+                            {
+                                foreach (var friend in dictionary)
+                                {
+                                    if (!friends.Contains(friend.Key))
+                                    {
+                                        friends.Add(friend.Key);
+                                        if (!string.IsNullOrEmpty(friend.Value.SenderId) && friend.Value.SenderId != resultValidate.user.Id)
+                                        {
+                                            UserBase? user = await UserService.GetUserAsync(friend.Value.SenderId);
+                                            if(user != null)
+                                            {
+                                                SubscriptionResponse response = new SubscriptionResponse();
+                                                response.Title = "Запрос в друзья";
+                                                response.AvatarUrl = user.AvatarUrl;
+                                                response.Text = user.FirstName + " " + user.LastName;
+                                                var serverMsg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
+                                                if (webSocket.State == WebSocketState.Open)
+                                                {
+                                                    await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            string json = JsonConvert.SerializeObject(data.Object);
+                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, Friend>>(json);
+                            if (dictionary != null)
+                            {
+                                foreach (var item in dictionary)
+                                {
+                                    friends.Add(item.Key);
+                                }
+                            }
+                        }
+                    }
+                    else if (webSocket.State == WebSocketState.Open)
+                    {
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                    }
+                });
+                while (webSocket.State == WebSocketState.Open)
+                {
+                    await Task.Delay(1000);
                 }
             }
         }
