@@ -366,5 +366,58 @@ namespace backend.Controllers
                 }
             }
         }
+        [Authorize]
+        [HttpGet("SubscribeToFriendsUpdates")]
+        public async Task SubscribeToFriendsUpdates()
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null)
+            {
+                HttpContext.Response.StatusCode = 400;
+            }
+            else
+            {
+                using var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync("client");
+                var endTime = DateTime.UtcNow.AddMinutes(2);
+                _ = Task.Run(async () =>
+                {
+                    var buffer = new byte[1024];
+                    while (webSocket.State == WebSocketState.Open)
+                    {
+                        var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                        if (webSocket.State == WebSocketState.Open)
+                        {
+                            endTime = DateTime.UtcNow.AddMinutes(2);
+                        }
+                    }
+                });
+                bool isSend = true;
+                var startTime = DateTime.UtcNow.AddSeconds(5);
+                FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
+                firebaseDatabase.Child($"Friends/{resultValidate.user.Id}").AsObservable<object>().Subscribe(async data =>
+                {
+                    if (DateTime.UtcNow > endTime && webSocket.State == WebSocketState.Open)
+                    {
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                    }
+                    else if (DateTime.UtcNow > startTime && isSend)
+                    {
+                        isSend = false;
+                        if (webSocket.State == WebSocketState.Open)
+                        {
+                            var serverMsg = Encoding.UTF8.GetBytes("Update friends");
+                            await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                        }
+                        await Task.Delay(1000);
+                        isSend = true;
+                    }
+                });
+                while (webSocket.State == WebSocketState.Open)
+                {
+                    await Task.Delay(1000);
+                }
+            }
+        }
     }
 }
