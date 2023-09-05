@@ -87,38 +87,10 @@ namespace backend.Services
                 var friensWaiting = friends.Where(item => item.IsConfirmed == false && item.SenderId == senderId).Select(item => item.UserId).ToArray();
                 List<Friend> list = new();
                 var users = GetAllFriendsAsync().Result?.Where(user=>user.Id != senderId);
-                var usersUnconfirmed = users?.Where(user=> friensUnconfirmed.Contains(user.Id));
-                if(usersUnconfirmed != null)
-                {
-                    foreach (var user in usersUnconfirmed)
-                    {
-                        user.FriendStatus = FriendStatus.Unconfirmed;
-                    }
-                }
-                var usersWaiting = users?.Where(user=> friensWaiting.Contains(user.Id));
-                if (usersWaiting != null)
-                {
-                    foreach (var user in usersWaiting)
-                    {
-                        user.FriendStatus = FriendStatus.Waiting;
-                    }
-                }
-                var userConfirmed = users?.Where(user=> friensConfirmed.Contains(user.Id));
-                if (userConfirmed != null)
-                {
-                    foreach (var user in userConfirmed)
-                    {
-                        user.FriendStatus = FriendStatus.Confirmed;
-                    }
-                }
-                var userOther = users?.Where(user => !friensUnconfirmed.Contains(user.Id) && !friensWaiting.Contains(user.Id) && !friensConfirmed.Contains(user.Id));
-                if (userOther != null)
-                {
-                    foreach (var user in userOther)
-                    {
-                        user.FriendStatus = FriendStatus.Other;
-                    }
-                }
+                var usersUnconfirmed = users?.Where(user=> friensUnconfirmed.Contains(user.Id)).Select(user => { user.FriendStatus = FriendStatus.Unconfirmed; return user; });
+                var usersWaiting = users?.Where(user=> friensWaiting.Contains(user.Id)).Select(user => { user.FriendStatus = FriendStatus.Waiting; return user; });
+                var userConfirmed = users?.Where(user=> friensConfirmed.Contains(user.Id)).Select(user => { user.FriendStatus = FriendStatus.Confirmed; return user; });
+                var userOther = users?.Where(user => !friensUnconfirmed.Contains(user.Id) && !friensWaiting.Contains(user.Id) && !friensConfirmed.Contains(user.Id)).Select(user => { user.FriendStatus = FriendStatus.Other; return user; });
                 if (usersUnconfirmed != null) list.AddRange(usersUnconfirmed);
                 if (usersWaiting != null) list.AddRange(usersWaiting);
                 if (userConfirmed != null) list.AddRange(userConfirmed);
@@ -147,38 +119,10 @@ namespace backend.Services
                 var allUsers = await GetAllFriendsAsync();
                 var users = allUsers?.Where(user => userFriensConfirmed.Contains(user.Id));
                 List<Friend> list = new();
-                var usersUnconfirmed = users?.Where(user => friensUnconfirmed.Contains(user.Id));
-                if (usersUnconfirmed != null)
-                {
-                    foreach (var user in usersUnconfirmed)
-                    {
-                        user.FriendStatus = FriendStatus.Unconfirmed;
-                    }
-                }
-                var usersWaiting = users?.Where(user => friensWaiting.Contains(user.Id));
-                if (usersWaiting != null)
-                {
-                    foreach (var user in usersWaiting)
-                    {
-                        user.FriendStatus = FriendStatus.Waiting;
-                    }
-                }
-                var userConfirmed = users?.Where(user => friensConfirmed.Contains(user.Id));
-                if (userConfirmed != null)
-                {
-                    foreach (var user in userConfirmed)
-                    {
-                        user.FriendStatus = FriendStatus.Confirmed;
-                    }
-                }
-                var userOther = users?.Where(user => !friensUnconfirmed.Contains(user.Id) && !friensWaiting.Contains(user.Id) && !friensConfirmed.Contains(user.Id));
-                if (userOther != null)
-                {
-                    foreach (var user in userOther)
-                    {
-                        user.FriendStatus = FriendStatus.Other;
-                    }
-                }
+                var usersUnconfirmed = users?.Where(user => friensUnconfirmed.Contains(user.Id)).Select(user => { user.FriendStatus = FriendStatus.Unconfirmed; return user; });
+                var usersWaiting = users?.Where(user => friensWaiting.Contains(user.Id)).Select(user => { user.FriendStatus = FriendStatus.Waiting; return user; });
+                var userConfirmed = users?.Where(user => friensConfirmed.Contains(user.Id)).Select(user => { user.FriendStatus = FriendStatus.Confirmed; return user; });
+                var userOther = users?.Where(user => !friensUnconfirmed.Contains(user.Id) && !friensWaiting.Contains(user.Id) && !friensConfirmed.Contains(user.Id)).Select(user => { user.FriendStatus = FriendStatus.Other; return user; });
                 if (usersUnconfirmed != null) list.AddRange(usersUnconfirmed);
                 if (usersWaiting != null) list.AddRange(usersWaiting);
                 if (userConfirmed != null) list.AddRange(userConfirmed);
