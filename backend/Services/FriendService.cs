@@ -27,6 +27,7 @@ namespace backend.Services
 
             await UpdateFriendAsync(recipientId, senderId, recipient);
             await UpdateFriendAsync(senderId, recipientId, sender);
+            await NotificationService.AddNotificationAsync(senderId, recipientId, NotificationType.AddFriend);
 
             return true;
         }
@@ -57,6 +58,8 @@ namespace backend.Services
               .Child(recipientId)
               .Child(senderId)
               .DeleteAsync();
+
+            await NotificationService.AddNotificationAsync(senderId, recipientId, NotificationType.RemoveFriend);
         }
         public static async Task<bool> ConfirmFriendAsync(string senderId, string recipientId)
         {
@@ -69,6 +72,7 @@ namespace backend.Services
                 sender.IsConfirmed = true;
                 await UpdateFriendAsync(senderId, recipientId, recipient);
                 await UpdateFriendAsync(recipientId, senderId, sender);
+                await NotificationService.AddNotificationAsync(senderId, recipientId, NotificationType.ConfirmFriend);
                 return true;
             }
             else return false;

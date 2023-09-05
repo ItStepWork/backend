@@ -4,6 +4,7 @@
     {
         AddFriend,
         RemoveFriend,
+        ConfirmFriend,
         BirthDay
     }
 }

@@ -8,5 +8,7 @@ namespace backend.Models
         public string? SenderId { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public NotificationType? Type { get; set; }
+        public DateTime DateTime { get; set; }
+
     }
 }

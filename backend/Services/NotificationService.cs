@@ -13,8 +13,18 @@ namespace backend.Services
             notification.SenderId = senderId;
             notification.Type = type;
             notification.Id = Guid.NewGuid().ToString("N");
+            notification.DateTime = DateTime.UtcNow;
 
             await firebaseDatabase.Child("Notifications").Child(recipientId).Child(notification.Id).PutAsync(notification);
+        }
+        public static async Task<IEnumerable<Notification>?> GetNotificationsAsync(string userId)
+        {
+            var users = await firebaseDatabase
+                .Child("Notifications")
+                .Child(userId)
+                .OnceAsync<Notification>();
+
+            return users?.Select(x => x.Object);
         }
     }
 }
