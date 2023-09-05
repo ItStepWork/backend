@@ -142,10 +142,29 @@ namespace backend.Controllers
             var group = await GroupService.GetGroupAsync(id);
             var users = group?.Users?.Select((a) => a.Key);
             var result = await UserService.GetUsersAsync(users);
-            //result.OrderBy(i=>i.FirstName).ThenBy(i => i.LastName);
             result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
             result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
             return Ok(result);
+        }
+        [HttpGet("GetFriendsInGroup")]
+        public async Task<ActionResult> GetFriendsInGroup(string id)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var group = await GroupService.GetGroupAsync(id);
+            var users = group?.Users?.Where((a) => a.Value == true).Select((a) => a.Key).ToList();
+            if(users==null) return BadRequest("No users in group");
+            var friends = await FriendService.GetFriendsAsync(resultValidate.user.Id, resultValidate.user.Id);
+            var result = friends?.Where(f => users.Contains(f.Id)).ToList();
+            result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
+            result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
+            if (users.Contains(resultValidate.user.Id))
+            {
+                var my = await FriendService.GetFriendAsync(resultValidate.user.Id);
+                result.Insert(0,my);
+            }
+                return Ok(result);
         }
         [HttpGet("GetMembersGroup")]
         public async Task<ActionResult> GetMembersGroup(string id)
@@ -156,7 +175,6 @@ namespace backend.Controllers
             var group = await GroupService.GetGroupAsync(id);
             var users = group?.Users?.Where((a)=>a.Value==true).Select((a) => a.Key).ToList();
             var result = await UserService.GetUsersAsync(users);
-            //result?.Sort((left, right) => left.FirstName.CompareTo(right.FirstName));
             result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
             result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
             return Ok(result);
@@ -170,7 +188,6 @@ namespace backend.Controllers
             var group = await GroupService.GetGroupAsync(id);
             var users = group?.Users?.Where((a) => a.Value == false).Select((a) => a.Key);
             var result = await UserService.GetUsersAsync(users);
-            //result.OrderBy(i => i.FirstName).ThenBy(i => i.LastName);
             result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
             result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
             return Ok(result);
