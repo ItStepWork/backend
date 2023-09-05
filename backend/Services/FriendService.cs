@@ -7,6 +7,15 @@ namespace backend.Services
     public class FriendService
     {
         private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
+
+        public static async Task<Friend?> GetFriendAsync(string userId)
+        {
+            var user = await firebaseDatabase
+              .Child("Users")
+              .Child(userId).OnceSingleAsync<Friend>();
+
+            return user;
+        }
         public static async Task<bool> AddFriendAsync(string senderId, string recipientId)
         {
             FriendRequest recipient = new FriendRequest();
