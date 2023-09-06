@@ -18,7 +18,7 @@ namespace backend.Controllers
 
             return Ok(result);
         }
-        [HttpGet("InviteToGroup")]
+        [HttpPost("InviteToGroup")]
         public async Task<ActionResult> InviteToGroup(Request request)
         {
             if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.GroupId)) return BadRequest("Data in null or empty");
