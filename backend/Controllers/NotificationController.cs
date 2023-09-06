@@ -30,7 +30,7 @@ namespace backend.Controllers
 
             if (group.Users.ContainsKey(request.UserId)) return Conflict("User exists in the group");
 
-            await NotificationService.AddNotificationAsync(resultValidate.user.Id, request.UserId, request.GroupId, NotificationType.InviteToGroup);
+            await NotificationService.AddNotificationAsync(resultValidate.user.Id, request.UserId, group, NotificationType.InviteToGroup);
 
             return Ok("Ok");
         }

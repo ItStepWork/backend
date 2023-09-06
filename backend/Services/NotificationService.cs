@@ -17,14 +17,14 @@ namespace backend.Services
 
             await firebaseDatabase.Child("Notifications").Child(recipientId).Child(notification.Id).PutAsync(notification);
         }
-        public static async Task AddNotificationAsync(string senderId, string recipientId, string groupId, NotificationType type)
+        public static async Task AddNotificationAsync(string senderId, string recipientId, Group group, NotificationType type)
         {
             Notification notification = new();
             notification.SenderId = senderId;
             notification.Type = type;
             notification.Id = Guid.NewGuid().ToString("N");
             notification.DateTime = DateTime.UtcNow;
-            notification.Url = $"{General.SiteUrl}group/{groupId}";
+            notification.Url = $"{General.SiteUrl}group/{group.Id}";
 
             await firebaseDatabase.Child("Notifications").Child(recipientId).Child(notification.Id).PutAsync(notification);
         }
