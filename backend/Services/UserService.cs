@@ -77,7 +77,7 @@ namespace backend.Services
             return users?
               .Where(u=>u.Key != userId).Select(x => x.Object);
         }
-        public static async Task<List<UserBase>?> GetUsersAsync(IEnumerable<string> users)
+        public static async Task<List<UserBase>?> GetUsersAsync(string[] users)
         {
             var result = await firebaseDatabase
               .Child("Users")
