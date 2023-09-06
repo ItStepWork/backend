@@ -8,20 +8,31 @@ namespace backend.Services
     public class PostService
     {
         private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
-        public async Task<string> CreatePostAsync(CreatePostViewModel model)
+        public async Task<string> CreatePostAsync(Post model)
         {
             var post = new Post
             {
                 Text = model.Text,
                 ImageUrl = model.ImageUrl,
-                VideoUrl = model.VideoUrl
+                VideoUrl = model.VideoUrl,
+                UserId= model.UserId
             };
 
-            var postResponse = await firebaseDatabase.Child("Posts").PostAsync(post);
+            var postResponse = await firebaseDatabase.Child("Posts").Child(post.UserId).PostAsync(post);
 
             return postResponse.Key;
         }
+        public async Task<string> CreatePutAsync(Post model)
+        {
+            var Post = new Post
+            {
+                Id = model.Id,
+            };
 
+            var putResponse = await firebaseDatabase.Child("Puts").PostAsync(put);
+
+            return putResponse.Key;
+        }
         public Post GetPostById(string postId)
         {
             var post = firebaseDatabase.Child("Posts").Child(postId).OnceSingleAsync<Post>().Result;

@@ -6,9 +6,12 @@ using backend.Services;
 
 namespace backend.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
     public class PostController : Controller
     {
         private readonly PostService _postService;
+        private readonly Post _model;
 
         public PostController(PostService postService)
         {
@@ -18,41 +21,42 @@ namespace backend.Controllers
         [HttpGet]
         public IActionResult Create()
         {
-            return View();
+            return Ok();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreatePostViewModel model)
+        public async Task<IActionResult> Create(Post model)
         {
             if (ModelState.IsValid)
             {
+                var putId = await _postService.CreatePutAsync(model);
                 var postId = await _postService.CreatePostAsync(model);
 
                 return RedirectToAction("Index", "Home");
             }
 
-            return View(model);
+            return Ok(model);
         }
 
         [HttpGet]
         public IActionResult Details(string postId)
         {
             var post = _postService.GetPostById(postId);
-            return View(post);
+            return Ok(post);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddComment(string senderId, string userId, string postId, string text)
         {
             await _postService.AddCommentAsync(senderId, userId, postId, text);
-            return RedirectToAction("Details", new { postId = postId });
+            return Ok();
         }
 
         [HttpPost]
         public async Task<IActionResult> LikePost(string senderId, string userId, string postId)
         {
             await _postService.LikePostAsync(senderId, userId, postId);
-            return RedirectToAction("Details", new { postId = postId });
+            return Ok();
         }
     }
 }
