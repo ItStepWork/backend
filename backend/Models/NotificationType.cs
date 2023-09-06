@@ -5,6 +5,7 @@
         AddFriend,
         RemoveFriend,
         ConfirmFriend,
-        BirthDay
+        BirthDay,
+        InviteToGroup,
     }
 }
