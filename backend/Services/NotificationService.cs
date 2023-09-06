@@ -25,6 +25,7 @@ namespace backend.Services
             notification.Id = Guid.NewGuid().ToString("N");
             notification.DateTime = DateTime.UtcNow;
             notification.Url = $"{General.SiteUrl}group/{group.Id}";
+            notification.GroupName = group.Name;
 
             await firebaseDatabase.Child("Notifications").Child(recipientId).Child(notification.Id).PutAsync(notification);
         }
