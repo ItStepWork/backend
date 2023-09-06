@@ -12,13 +12,14 @@ namespace backend.Controllers
         [HttpPost("AddGroup")]
         public async Task<ActionResult> AddGroup([FromForm] Request groupRequest)
         {
+            if (groupRequest.Audience == null) return BadRequest("Audience is null");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             Group group = new Group();
             group.Name = groupRequest.Name;
             group.Description = groupRequest.Description;
-            group.Audience = groupRequest.Audience;
+            group.Audience = (Audience)groupRequest.Audience;
             group.AdminId= resultValidate.user.Id;
             group.Users.Add(resultValidate.user.Id, true);
             var result = await GroupService.AddGroupAsync(group);
@@ -55,12 +56,13 @@ namespace backend.Controllers
         [HttpPost("UpdateGroup")]
         public async Task<ActionResult> UpdateGroup([FromForm] Request groupRequest)
         {
+            if (groupRequest.Audience == null) return BadRequest("Audience is null");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
             var group = await GroupService.GetGroupAsync(groupRequest.Id);
             if (group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
             group.Description = groupRequest.Description;
-            group.Audience = groupRequest.Audience;
+            group.Audience = (Audience)groupRequest.Audience;
             group.Name = groupRequest.Name;
             await GroupService.UpdateGroupAsync(group.Id, group);
             return Ok("Group updated");
