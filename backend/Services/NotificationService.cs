@@ -31,14 +31,15 @@ namespace backend.Services
         }
         public static async Task<IEnumerable<NotificationResponse>?> GetNotificationsAsync(string userId)
         {
-            var notifications = await firebaseDatabase
+            var result = await firebaseDatabase
                 .Child("Notifications")
                 .Child(userId)
                 .OnceAsync<Notification>();
 
             var users = await UserService.GetUsersAsync();
-
-            return notifications?.Select(x => new NotificationResponse() { Notification = x.Object, User = users?.FirstOrDefault(user=>user.Id == x.Object.SenderId) } );
+            var notifications = result.Select(n=>n.Object).ToList();
+            notifications.Sort((x, y) => DateTime.Compare(y.DateTime, x.DateTime));
+            return notifications?.Select(x => new NotificationResponse() { Notification = x, User = users?.FirstOrDefault(user=>user.Id == x.SenderId) } );
         }
     }
 }
