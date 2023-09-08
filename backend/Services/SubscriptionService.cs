@@ -13,11 +13,12 @@ namespace backend.Services
 
         public static async Task SubscribeUpdatesAsync(HttpContext httpContext, string path, string message)
         {
-            using var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
             var serverMsg = Encoding.UTF8.GetBytes(message);
 
-            object endTime = DateTime.UtcNow.AddMinutes(2);
-            Echo(webSocket, endTime);
+            Subscription subscription = new();
+            subscription.EndTime = DateTime.UtcNow.AddMinutes(2);
+            subscription.WebSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
+            Echo(subscription);
 
             bool isSend = true;
             var startTime = DateTime.UtcNow.AddSeconds(5);
@@ -26,26 +27,26 @@ namespace backend.Services
                 try
                 {
                     bool check = false;
-                    lock (endTime)
+                    lock (subscription)
                     {
-                        if (DateTime.UtcNow < (DateTime)endTime) check = true;
+                        if (DateTime.UtcNow < subscription.EndTime) check = true;
                     }
                     if (check)
                     {
                         if (DateTime.UtcNow > startTime && isSend)
                         {
                             isSend = false;
-                            if (webSocket.State == WebSocketState.Open)
+                            if (subscription.WebSocket.State == WebSocketState.Open)
                             {
-                                await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                                await subscription.WebSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
                             }
                             await Task.Delay(1000);
                             isSend = true;
                         }
                     }
-                    else if (webSocket.State == WebSocketState.Open)
+                    else if (subscription.WebSocket.State == WebSocketState.Open)
                     {
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                        await subscription.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
                     }
                 }
                 catch (Exception ex)
@@ -54,29 +55,30 @@ namespace backend.Services
                     Console.WriteLine(ex.ToString());
                 }
             });
-            Console.WriteLine("Start");
-            while (webSocket.State == WebSocketState.Open)
+            Console.WriteLine("Subscribe\t id: " + subscription.WebSocket.GetHashCode());
+            while (subscription.WebSocket.State == WebSocketState.Open)
             {
                 await Task.Delay(1000);
             }
-            if(result != null)result.Dispose();
-            Console.WriteLine("End");
+            if (result != null)result.Dispose();
+            Console.WriteLine("Unsubscribe\t id: " + subscription.WebSocket.GetHashCode());
         }
         public static async Task SubscribeToMessagesAsync(HttpContext httpContext, string path, string userId)
         {
-            using var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
             var startTime = DateTime.UtcNow;
-            object endTime = DateTime.UtcNow.AddMinutes(2);
-            Echo(webSocket, endTime);
+            Subscription subscription = new();
+            subscription.EndTime = DateTime.UtcNow.AddMinutes(2);
+            subscription.WebSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
+            Echo(subscription);
             List<string> messages = new();
             DateTime start = DateTime.UtcNow;
             var result = SubscribeFirebase(path + "/" + userId, async data => {
                 try
                 {
                     bool check = false;
-                    lock (endTime)
+                    lock (subscription)
                     {
-                        if (DateTime.UtcNow < (DateTime)endTime) check = true;
+                        if (DateTime.UtcNow < subscription.EndTime) check = true;
                     }
                     if (check)
                     {
@@ -102,9 +104,9 @@ namespace backend.Services
                                                 response.AvatarUrl = user.AvatarUrl;
                                                 response.Text = last.Text;
                                                 var serverMsg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
-                                                if (webSocket.State == WebSocketState.Open)
+                                                if (subscription.WebSocket.State == WebSocketState.Open)
                                                 {
-                                                    await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                                                    await subscription.WebSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
                                                 }
                                             }
                                         }
@@ -129,9 +131,9 @@ namespace backend.Services
                             }
                         }
                     }
-                    else if (webSocket.State == WebSocketState.Open)
+                    else if (subscription.WebSocket.State == WebSocketState.Open)
                     {
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                        await subscription.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
                     }
                 }
                 catch (Exception ex)
@@ -141,18 +143,21 @@ namespace backend.Services
                 }
                 
             });
-            while (webSocket.State == WebSocketState.Open)
+            Console.WriteLine("Subscribe\t id: " + subscription.WebSocket.GetHashCode());
+            while (subscription.WebSocket.State == WebSocketState.Open)
             {
                 await Task.Delay(1000);
             }
             if (result != null) result.Dispose();
+            Console.WriteLine("Unsubscribe\t id: " + subscription.WebSocket.GetHashCode());
         }
         public static async Task SubscribeToFriendRequestAsync(HttpContext httpContext, string path, string userId)
         {
-            using var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
             var startTime = DateTime.UtcNow;
-            object endTime = DateTime.UtcNow.AddMinutes(2);
-            Echo(webSocket, endTime);
+            Subscription subscription = new();
+            subscription.EndTime = DateTime.UtcNow.AddMinutes(2);
+            subscription.WebSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
+            Echo(subscription);
             List<string> friends = new();
             DateTime start = DateTime.UtcNow.AddSeconds(5);
 
@@ -161,9 +166,9 @@ namespace backend.Services
                 try
                 {
                     bool check = false;
-                    lock (endTime)
+                    lock (subscription)
                     {
-                        if (DateTime.UtcNow < (DateTime)endTime) check = true;
+                        if (DateTime.UtcNow < subscription.EndTime) check = true;
                     }
                     if (check)
                     {
@@ -188,9 +193,9 @@ namespace backend.Services
                                                 response.AvatarUrl = user.AvatarUrl;
                                                 response.Text = user.FirstName + " " + user.LastName;
                                                 var serverMsg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
-                                                if (webSocket.State == WebSocketState.Open)
+                                                if (subscription.WebSocket.State == WebSocketState.Open)
                                                 {
-                                                    await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                                                    await subscription.WebSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
                                                 }
                                             }
                                         }
@@ -211,9 +216,9 @@ namespace backend.Services
                             }
                         }
                     }
-                    else if (webSocket.State == WebSocketState.Open)
+                    else if (subscription.WebSocket.State == WebSocketState.Open)
                     {
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                        await subscription.WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
                     }
                 }
                 catch (Exception ex)
@@ -223,11 +228,13 @@ namespace backend.Services
                 }
             });
 
-            while (webSocket.State == WebSocketState.Open)
+            Console.WriteLine("Subscribe\t id: " + subscription.WebSocket.GetHashCode());
+            while (subscription.WebSocket.State == WebSocketState.Open)
             {
                 await Task.Delay(1000);
             }
             if (result != null) result.Dispose();
+            Console.WriteLine("Unsubscribe\t id: " + subscription.WebSocket.GetHashCode());
         }
         public static IDisposable? SubscribeFirebase(string path, Action<FirebaseEvent<object>> action)
         {
@@ -244,23 +251,21 @@ namespace backend.Services
             }
             return null;
         }
-        public static void Echo(WebSocket webSocket, object endTime)
+        public static void Echo(Subscription subscription)
         {
             _ = Task.Run(async () =>
             {
                 try
                 {
                     var buffer = new byte[1024];
-                    while (webSocket.State == WebSocketState.Open)
+                    while (true)
                     {
-                        var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+                        var receiveResult = await subscription.WebSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
 
-                        if (webSocket.State == WebSocketState.Open)
+                        lock (subscription)
                         {
-                            lock (endTime)
-                            {
-                                endTime = DateTime.UtcNow.AddMinutes(2);
-                            }
+                            subscription.EndTime = DateTime.UtcNow.AddMinutes(2);
+                            if (subscription.WebSocket.State != WebSocketState.Open) break;
                         }
                     }
                 }
