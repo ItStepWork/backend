@@ -15,161 +15,211 @@ namespace backend.Services
         {
             using var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
             var serverMsg = Encoding.UTF8.GetBytes(message);
-            
-            object endTime = Echo(webSocket);
+
+            object endTime = DateTime.UtcNow.AddMinutes(2);
+            Echo(webSocket, endTime);
 
             bool isSend = true;
             var startTime = DateTime.UtcNow.AddSeconds(5);
-            SubscribeFirebase(path, async data =>
+            var result = SubscribeFirebase(path, async data =>
             {
-                if (DateTime.UtcNow > (DateTime)endTime && webSocket.State == WebSocketState.Open)
+                try
                 {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
-                }
-                else if (DateTime.UtcNow > startTime && isSend)
-                {
-                    isSend = false;
-                    if (webSocket.State == WebSocketState.Open)
+                    bool check = false;
+                    lock (endTime)
                     {
-                        await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                        if (DateTime.UtcNow < (DateTime)endTime) check = true;
                     }
-                    await Task.Delay(1000);
-                    isSend = true;
+                    if (check)
+                    {
+                        if (DateTime.UtcNow > startTime && isSend)
+                        {
+                            isSend = false;
+                            if (webSocket.State == WebSocketState.Open)
+                            {
+                                await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                            }
+                            await Task.Delay(1000);
+                            isSend = true;
+                        }
+                    }
+                    else if (webSocket.State == WebSocketState.Open)
+                    {
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Exception SubscribeUpdatesAsync");
+                    Console.WriteLine(ex.ToString());
                 }
             });
+            Console.WriteLine("Start");
             while (webSocket.State == WebSocketState.Open)
             {
                 await Task.Delay(1000);
             }
+            if(result != null)result.Dispose();
+            Console.WriteLine("End");
         }
         public static async Task SubscribeToMessagesAsync(HttpContext httpContext, string path, string userId)
         {
             using var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
             var startTime = DateTime.UtcNow;
-            var endTime = Echo(webSocket);
+            object endTime = DateTime.UtcNow.AddMinutes(2);
+            Echo(webSocket, endTime);
             List<string> messages = new();
             DateTime start = DateTime.UtcNow;
-            SubscribeFirebase(path + "/" + userId, async data => {
-                if (DateTime.UtcNow < (DateTime)endTime)
+            var result = SubscribeFirebase(path + "/" + userId, async data => {
+                try
                 {
-                    if (DateTime.UtcNow > start.AddSeconds(5))
+                    bool check = false;
+                    lock (endTime)
                     {
-                        string json = JsonConvert.SerializeObject(data.Object);
-                        var dictionary = JsonConvert.DeserializeObject<Dictionary<string, Message>>(json);
-                        if (dictionary != null)
+                        if (DateTime.UtcNow < (DateTime)endTime) check = true;
+                    }
+                    if (check)
+                    {
+                        if (DateTime.UtcNow > start.AddSeconds(5))
                         {
-                            var last = dictionary.LastOrDefault().Value;
-                            if (last.Id != null)
+                            string json = JsonConvert.SerializeObject(data.Object);
+                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, Message>>(json);
+                            if (dictionary != null)
                             {
-                                if (!messages.Contains(last.Id))
+                                var last = dictionary.LastOrDefault().Value;
+                                if (last.Id != null)
                                 {
-                                    messages.Add(last.Id);
-                                    if (!string.IsNullOrEmpty(last.Text) && !string.IsNullOrEmpty(last.SenderId) && last.SenderId != userId)
+                                    if (!messages.Contains(last.Id))
                                     {
-                                        UserBase? user = await UserService.GetUserAsync(last.SenderId);
-                                        if (user != null)
+                                        messages.Add(last.Id);
+                                        if (!string.IsNullOrEmpty(last.Text) && !string.IsNullOrEmpty(last.SenderId) && last.SenderId != userId)
                                         {
-                                            SubscriptionResponse response = new SubscriptionResponse();
-                                            response.Title = user.FirstName + " " + user.LastName;
-                                            response.AvatarUrl = user.AvatarUrl;
-                                            response.Text = last.Text;
-                                            var serverMsg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
-                                            if (webSocket.State == WebSocketState.Open)
+                                            UserBase? user = await UserService.GetUserAsync(last.SenderId);
+                                            if (user != null)
                                             {
-                                                await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                                                SubscriptionResponse response = new SubscriptionResponse();
+                                                response.Title = user.FirstName + " " + user.LastName;
+                                                response.AvatarUrl = user.AvatarUrl;
+                                                response.Text = last.Text;
+                                                var serverMsg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
+                                                if (webSocket.State == WebSocketState.Open)
+                                                {
+                                                    await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        string json = JsonConvert.SerializeObject(data.Object);
-                        var dictionary = JsonConvert.DeserializeObject<Dictionary<string, Message>>(json);
-                        if (dictionary != null)
+                        else
                         {
-                            var last = dictionary.LastOrDefault().Value;
-                            if (last.Id != null)
+                            string json = JsonConvert.SerializeObject(data.Object);
+                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, Message>>(json);
+                            if (dictionary != null)
                             {
-                                if (!messages.Contains(last.Id))
+                                var last = dictionary.LastOrDefault().Value;
+                                if (last.Id != null)
                                 {
-                                    messages.Add(last.Id);
+                                    if (!messages.Contains(last.Id))
+                                    {
+                                        messages.Add(last.Id);
+                                    }
                                 }
                             }
                         }
                     }
+                    else if (webSocket.State == WebSocketState.Open)
+                    {
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                    }
                 }
-                else if (webSocket.State == WebSocketState.Open)
+                catch (Exception ex)
                 {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                    Console.WriteLine("Exception SubscribeToMessagesAsync");
+                    Console.WriteLine(ex.ToString());
                 }
+                
             });
             while (webSocket.State == WebSocketState.Open)
             {
                 await Task.Delay(1000);
             }
+            if (result != null) result.Dispose();
         }
         public static async Task SubscribeToFriendRequestAsync(HttpContext httpContext, string path, string userId)
         {
             using var webSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
             var startTime = DateTime.UtcNow;
-            var endTime = Echo(webSocket);
+            object endTime = DateTime.UtcNow.AddMinutes(2);
+            Echo(webSocket, endTime);
             List<string> friends = new();
             DateTime start = DateTime.UtcNow.AddSeconds(5);
 
-            SubscribeFirebase(path + "/" + userId, async data =>
+            var result = SubscribeFirebase(path + "/" + userId, async data =>
             {
-                if (DateTime.UtcNow < (DateTime)endTime)
+                try
                 {
-                    if (DateTime.UtcNow > start)
+                    bool check = false;
+                    lock (endTime)
                     {
-                        string json = JsonConvert.SerializeObject(data.Object);
-                        var dictionary = JsonConvert.DeserializeObject<Dictionary<string, FriendRequest>>(json);
-                        if (dictionary != null)
+                        if (DateTime.UtcNow < (DateTime)endTime) check = true;
+                    }
+                    if (check)
+                    {
+                        if (DateTime.UtcNow > start)
                         {
-                            foreach (var friend in dictionary)
+                            string json = JsonConvert.SerializeObject(data.Object);
+                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, FriendRequest>>(json);
+                            if (dictionary != null)
                             {
-                                if (!friends.Contains(friend.Key))
+                                foreach (var friend in dictionary)
                                 {
-                                    friends.Add(friend.Key);
-                                    if (!string.IsNullOrEmpty(friend.Value.SenderId) && friend.Value.SenderId != userId)
+                                    if (!friends.Contains(friend.Key))
                                     {
-                                        UserBase? user = await UserService.GetUserAsync(friend.Value.SenderId);
-                                        if (user != null)
+                                        friends.Add(friend.Key);
+                                        if (!string.IsNullOrEmpty(friend.Value.SenderId) && friend.Value.SenderId != userId)
                                         {
-                                            SubscriptionResponse response = new SubscriptionResponse();
-                                            response.Title = "Запрос в друзья";
-                                            response.AvatarUrl = user.AvatarUrl;
-                                            response.Text = user.FirstName + " " + user.LastName;
-                                            var serverMsg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
-                                            if (webSocket.State == WebSocketState.Open)
+                                            UserBase? user = await UserService.GetUserAsync(friend.Value.SenderId);
+                                            if (user != null)
                                             {
-                                                await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                                                SubscriptionResponse response = new SubscriptionResponse();
+                                                response.Title = "Запрос в друзья";
+                                                response.AvatarUrl = user.AvatarUrl;
+                                                response.Text = user.FirstName + " " + user.LastName;
+                                                var serverMsg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
+                                                if (webSocket.State == WebSocketState.Open)
+                                                {
+                                                    await webSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        string json = JsonConvert.SerializeObject(data.Object);
-                        var dictionary = JsonConvert.DeserializeObject<Dictionary<string, FriendRequest>>(json);
-                        if (dictionary != null)
+                        else
                         {
-                            foreach (var item in dictionary)
+                            string json = JsonConvert.SerializeObject(data.Object);
+                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, FriendRequest>>(json);
+                            if (dictionary != null)
                             {
-                                friends.Add(item.Key);
+                                foreach (var item in dictionary)
+                                {
+                                    friends.Add(item.Key);
+                                }
                             }
                         }
                     }
+                    else if (webSocket.State == WebSocketState.Open)
+                    {
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                    }
                 }
-                else if (webSocket.State == WebSocketState.Open)
+                catch (Exception ex)
                 {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed", CancellationToken.None);
+                    Console.WriteLine("Exception SubscribeToFriendRequestAsync");
+                    Console.WriteLine(ex.ToString());
                 }
             });
 
@@ -177,30 +227,49 @@ namespace backend.Services
             {
                 await Task.Delay(1000);
             }
+            if (result != null) result.Dispose();
         }
-        public static void SubscribeFirebase(string path, Action<FirebaseEvent<object>> action)
+        public static IDisposable? SubscribeFirebase(string path, Action<FirebaseEvent<object>> action)
         {
-            firebaseDatabase.Child(path).AsObservable<object>().Subscribe(data => {
-                action(data);
-            });
+            try
+            {
+                var result = firebaseDatabase.Child(path).AsObservable<object>().Subscribe(data => {
+                    action(data);
+                });
+                return result;
+            }
+            catch (Exception ex) {
+                Console.WriteLine("Exception SubscribeFirebase");
+                Console.WriteLine(ex.ToString());
+            }
+            return null;
         }
-        public static object Echo(WebSocket webSocket)
+        public static void Echo(WebSocket webSocket, object endTime)
         {
-            object endTime = DateTime.UtcNow.AddMinutes(2);
             _ = Task.Run(async () =>
             {
-                var buffer = new byte[1024];
-                while (webSocket.State == WebSocketState.Open)
+                try
                 {
-                    var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
-                    if (webSocket.State == WebSocketState.Open)
+                    var buffer = new byte[1024];
+                    while (webSocket.State == WebSocketState.Open)
                     {
-                        endTime = DateTime.UtcNow.AddMinutes(2);
+                        var receiveResult = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+
+                        if (webSocket.State == WebSocketState.Open)
+                        {
+                            lock (endTime)
+                            {
+                                endTime = DateTime.UtcNow.AddMinutes(2);
+                            }
+                        }
                     }
                 }
+                catch(Exception ex)
+                {
+                    Console.WriteLine("Exception Echo");
+                    Console.WriteLine(ex.ToString());
+                }
             });
-            return endTime;
         }
     }
 }
