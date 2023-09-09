@@ -17,12 +17,8 @@ namespace backend.Controllers
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             var result = await GroupService.AddGroupAsync(groupRequest, resultValidate.user.Id);
-            if (result == null) return Conflict("Group not created");
-
-            result.Object.Id = result.Key;
-            result.Object.PictureUrl = await UserService.SaveFileAsync(groupRequest.File, "Groups", result.Object.Id);
-            await GroupService.UpdateGroupAsync(result.Object);
-            return Ok("Group added");
+            if(result.ok == "")return Conflict(result.response);
+            return Ok(result.ok);
         }
         [HttpDelete("DeleteGroup")]
         public async Task<ActionResult> DeleteGroup(string id)
@@ -55,6 +51,8 @@ namespace backend.Controllers
         [HttpPost("UpdateGroup")]
         public async Task<ActionResult> UpdateGroup([FromForm] Request groupRequest)
         {
+            var addr = new System.Net.Mail.MailAddress(groupRequest.Email);
+            if (addr.Address != groupRequest.Email) return BadRequest("Email not validate");
             if (groupRequest.Audience == null || groupRequest.Id == null) return BadRequest("Audience or Id is null");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
@@ -66,6 +64,7 @@ namespace backend.Controllers
             group.Description = groupRequest.Description;
             group.Audience = (Audience)groupRequest.Audience;
             group.Name = groupRequest.Name;
+            group.Email = groupRequest.Email;
             await GroupService.UpdateGroupAsync(group);
             return Ok("Group updated");
         }
@@ -163,22 +162,8 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            //var group = await GroupService.GetGroupAsync(id);
-            //var users = group?.Users?.Where((a) => a.Value == true).Select((a) => a.Key).ToList();
-            //if(users == null) return BadRequest("No users in group");
-
-            //var friends = await FriendService.GetFriendsAsync(resultValidate.user.Id, resultValidate.user.Id);
-            //var result = friends?.Where(f => users.Contains(f.Id)).ToList();
-            //result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
-            //result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
-            //if (users.Contains(resultValidate.user.Id))
-            //{
-            //    var my = await FriendService.GetFriendAsync(resultValidate.user.Id);
-            //    result.Insert(0,my);
-            //}
-            //return Ok(result);
             var result = await GroupService.GetFriendsInGroup(id, resultValidate.user.Id);
-            if (result.friends == null) return Unauthorized(result.response);
+            if (result.friends == null) return NotFound(result.response);
                 return Ok(result.friends);
         }
         [HttpGet("GetFriendsForInvitation")]
@@ -187,15 +172,8 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            //var group = await GroupService.GetGroupAsync(id);
-            //var users = group?.Users?.Select((a) => a.Key).ToList();
-            //if (users == null) return BadRequest("No users in group");
-            //var friends = await FriendService.GetFriendsAsync(resultValidate.user.Id, resultValidate.user.Id);
-            //var result = friends?.Where(f => f.FriendStatus==FriendStatus.Confirmed && !users.Contains(f.Id)).ToList();
-            //result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
-            //return Ok(result);
             var result = await GroupService.GetFriendsForInvitation(id, resultValidate.user.Id);
-            if (result.friends == null) return Unauthorized(result.response);
+            if (result.friends == null) return NotFound(result.response);
             return Ok(result.friends);
         }
         [HttpGet("GetMembersGroup")]
@@ -204,15 +182,8 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            //var group = await GroupService.GetGroupAsync(id);
-            //var users = group?.Users?.Where((a)=>a.Value==true).Select((a) => a.Key).ToList();
-            //if (users == null) return BadRequest("Users is empty");
-            //var result = await UserService.GetUsersAsync(users.ToArray());
-            //result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
-            //result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
-            //return Ok(result);
             var result = await GroupService.GetMembersGroup(id);
-            if (result.users == null) return Unauthorized(result.response);
+            if (result.users == null) return NotFound(result.response);
             return Ok(result.users);
         }
         [HttpGet("GetRequestsToGroup")]
@@ -221,14 +192,8 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            //var group = await GroupService.GetGroupAsync(id);
-            //var users = group?.Users?.Where((a) => a.Value == false).Select((a) => a.Key);
-            //var result = await UserService.GetUsersAsync(users.ToArray());
-            //result?.Sort((left, right) => left.FirstName == right.FirstName ? left.LastName.CompareTo(right.LastName) : left.FirstName.CompareTo(right.FirstName));
-            //result?.Sort((y, x) => Convert.ToInt32(x?.Id?.Equals(group?.AdminId)) - Convert.ToInt32(y?.Id?.Equals(group?.AdminId)));
-            //return Ok(result);
             var result = await GroupService.GetRequestsToGroup(id);
-            if (result.users == null) return Unauthorized(result.response);
+            if (result.users == null) return NotFound(result.response);
             return Ok(result.users);
         }
         [HttpPost("AddPhoto")]
@@ -238,23 +203,8 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            //var group = await GroupService.GetGroupAsync(groupRequest.Id);
-            //if (group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
-
-            //var photo = await GalleryService.AddPhotoAsync(groupRequest.Id);
-
-            //var url = await UserService.SaveFileAsync(groupRequest.File, "Groups", photo.Key);
-            //if (url == null) return Conflict("Save photo failed");
-
-            //Photo result = photo.Object;
-            //result.Id = photo.Key;
-            //result.Url = url;
-
-            //await GalleryService.UpdatePhotoAsync(groupRequest.Id, photo.Key, result);
-
-            //return Ok("Ok");
             var result = await GroupService.AddPhoto(groupRequest, resultValidate.user.Id);
-            if (result.ok == "") return Unauthorized(result.response);
+            if (result.ok == "") return NotFound(result.response);
             return Ok(result.ok);
         }
         [HttpGet("GetPhotos")]
@@ -273,13 +223,8 @@ namespace backend.Controllers
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            //var group = await GroupService.GetGroupAsync(groupRequest.Id);
-            //if (group.AdminId != resultValidate.user.Id) return Conflict("You not Admin");
-            //await GalleryService.RemovePhotoAsync(groupRequest.Id, groupRequest.PhotoId);
-            //await UserService.RemoveFileAsync("Groups", groupRequest.PhotoId);
-            //return Ok("Ok");
             var result = await GroupService.RemovePhoto(groupRequest, resultValidate.user.Id);
-            if (result.ok == "") return Unauthorized(result.response);
+            if (result.ok == "") return NotFound(result.response);
             return Ok(result.ok);
         }
     }
