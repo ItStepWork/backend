@@ -99,6 +99,7 @@ namespace backend.Services
               .Child(userId)
               .Child(photoId)
               .PutAsync(photo);
+            await NotificationService.AddNotificationAsync(senderId, userId, NotificationType.CommentPhoto);
         }
         public static async Task SetLikePhotoAsync(string senderId, string userId, string photoId)
         {
@@ -108,7 +109,11 @@ namespace backend.Services
               .Child(photoId).OnceSingleAsync<Photo>();
 
             if (photo.Likes.Contains(senderId)) photo.Likes.Remove(senderId);
-            else photo.Likes.Add(senderId);
+            else
+            {
+                photo.Likes.Add(senderId);
+                await NotificationService.AddNotificationAsync(senderId, userId, NotificationType.LikePhoto);
+            }
 
             await firebaseDatabase
               .Child("Photos")
