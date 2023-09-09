@@ -51,9 +51,9 @@ namespace backend.Controllers
         [HttpPost("UpdateGroup")]
         public async Task<ActionResult> UpdateGroup([FromForm] Request groupRequest)
         {
+            if (groupRequest.Audience == null || groupRequest.Id == null || groupRequest.Email==null) return BadRequest("Audience or Id or Email is null");
             var addr = new System.Net.Mail.MailAddress(groupRequest.Email);
             if (addr.Address != groupRequest.Email) return BadRequest("Email not validate");
-            if (groupRequest.Audience == null || groupRequest.Id == null) return BadRequest("Audience or Id is null");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
