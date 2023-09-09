@@ -7,5 +7,7 @@
         ConfirmFriend,
         BirthDay,
         InviteToGroup,
+        LikePhoto,
+        CommentPhoto
     }
 }

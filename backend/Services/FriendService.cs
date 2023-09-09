@@ -86,6 +86,13 @@ namespace backend.Services
             return users?
               .Select(x => x.Object);
         }
+        public static async Task<IEnumerable<FriendRequest>?> GetFriendsAsync(string userId)
+        {
+            var friends = await firebaseDatabase
+              .Child($"Friends/{userId}")
+              .OnceAsync<FriendRequest>();
+            return friends? .Select(x => x.Object);
+        }
         public static async Task<IEnumerable<Friend?>?> GetFriendsAsync(string senderId, string userId)
         {
             if (senderId == userId)
