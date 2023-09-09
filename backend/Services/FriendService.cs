@@ -48,6 +48,7 @@ namespace backend.Services
         }
         public static async Task RemoveFriendAsync(string senderId, string recipientId)
         {
+            var result = await FindFriendAsync(senderId, recipientId);
             await firebaseDatabase
               .Child("Friends")
               .Child(senderId)
@@ -58,8 +59,15 @@ namespace backend.Services
               .Child(recipientId)
               .Child(senderId)
               .DeleteAsync();
-
-            await NotificationService.AddNotificationAsync(senderId, recipientId, NotificationType.RemoveFriend);
+            if(result != null)
+            {
+                if(result.IsConfirmed == false)
+                {
+                    if(result.SenderId == senderId) await NotificationService.AddNotificationAsync(senderId, recipientId, NotificationType.CancelFriend);
+                    else await NotificationService.AddNotificationAsync(senderId, recipientId, NotificationType.RefusedFriend);
+                }
+                else await NotificationService.AddNotificationAsync(senderId, recipientId, NotificationType.RemoveFriend);
+            }
         }
         public static async Task<bool> ConfirmFriendAsync(string senderId, string recipientId)
         {

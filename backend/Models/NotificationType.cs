@@ -8,6 +8,8 @@
         BirthDay,
         InviteToGroup,
         LikePhoto,
-        CommentPhoto
+        CommentPhoto,
+        CancelFriend,
+        RefusedFriend,
     }
 }
