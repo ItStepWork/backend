@@ -1,4 +1,5 @@
 ﻿using backend.Models;
+using backend.Models.Enums;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 

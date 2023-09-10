@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using backend.Models.Enums;
 
 namespace backend.Models
 {
@@ -7,9 +8,9 @@ namespace backend.Models
         public string? Id { get; set; }
         public string? Email { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public Role Role { get; set; }
+        public Role? Role { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public Status Status { get; set; }
+        public Status? Status { get; set; }
         public DateTime LastVisit { get; set; }
         public string? Born { get; set; }
         public string? FirstName { get; set; }
@@ -17,7 +18,7 @@ namespace backend.Models
         public string? Phone { get; set; }
         public string? FamilyStatus { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public Gender Gender { get; set; }
+        public Gender? Gender { get; set; }
         public string? AboutMe { get; set; } 
         public string? Location { get; set; }
         public string? Work { get; set; }

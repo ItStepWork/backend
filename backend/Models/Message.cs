@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using backend.Models.Enums;
 
 namespace backend.Models
 {
@@ -6,6 +7,6 @@ namespace backend.Models
     {
         public string? Link { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
-        public MessageStatus Status { get; set; }
+        public MessageStatus? Status { get; set; }
     }
 }

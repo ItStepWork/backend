@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using backend.Models.Enums;
 
 namespace backend.Models
 {
