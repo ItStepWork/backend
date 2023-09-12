@@ -3,6 +3,8 @@ using System;
 using System.Threading.Tasks;
 using backend.Models;
 using backend.Services;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace backend.Controllers
 {
@@ -11,20 +13,30 @@ namespace backend.Controllers
     public class PostController : Controller
     {
         private readonly PostService _postService;
-        private readonly Post _model;
 
         public PostController(PostService postService)
         {
             _postService = postService;
         }
 
-        [HttpGet]
+        [Authorize]
+        [HttpGet("GetPost")]
+        public async Task<IActionResult> GetPost()
+        {
+            (string response, User? user) resultValidate = await ValidationUser();
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var post = await PostService.GetPostAsync(resultValidate.user.Id);
+            return Ok(post);
+        }
+
+        [HttpGet("CreatePost")]
         public IActionResult Create()
         {
             return Ok();
         }
 
-        [HttpPost]
+        [HttpPost("CreatePost")]
         public async Task<IActionResult> Create(Post model)
         {
             if (ModelState.IsValid)
@@ -45,18 +57,31 @@ namespace backend.Controllers
             return Ok(post);
         }
 
-        [HttpPost]
+        [HttpPost("AddComment")]
         public async Task<IActionResult> AddComment(string senderId, string userId, string postId, string text)
         {
             await _postService.AddCommentAsync(senderId, userId, postId, text);
             return Ok();
         }
 
-        [HttpPost]
+        [HttpPost("LikePost")]
         public async Task<IActionResult> LikePost(string senderId, string userId, string postId)
         {
             await _postService.LikePostAsync(senderId, userId, postId);
             return Ok();
+        }
+
+        private async Task<(string, User?)> ValidationUser()
+        {
+            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
+            if (claimId == null) return ("User not authorize!", null);
+
+            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
+            if (sender == null) return ("Sender not found!", null);
+
+            sender.LastVisit = DateTime.UtcNow;
+            await UserService.UpdateUserAsync(claimId.Value, sender);
+            return ("", sender);
         }
     }
 }

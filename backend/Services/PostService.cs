@@ -8,6 +8,14 @@ namespace backend.Services
     public class PostService
     {
         private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
+        public static async Task<IEnumerable<Post>?> GetPostAsync(string userId)
+        {
+            var users = await firebaseDatabase
+              .Child($"Post/{userId}")
+              .OnceAsync<Post>();
+
+            return users?.Select(x => x.Object);
+        }
         public async Task<string> CreatePostAsync(Post model)
         {
             var post = new Post
@@ -29,7 +37,7 @@ namespace backend.Services
                 Id = model.Id,
             };
 
-            var putResponse = await firebaseDatabase.Child("Puts").PostAsync(put);
+            var putResponse = await firebaseDatabase.Child("Posts").PostAsync(Post);
 
             return putResponse.Key;
         }
