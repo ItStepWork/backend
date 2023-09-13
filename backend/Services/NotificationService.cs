@@ -30,6 +30,15 @@ namespace backend.Services
 
             await firebaseDatabase.Child("Notifications").Child(recipientId).Child(notification.Id).PutAsync(notification);
         }
+        public static async Task<Notification?> GetNotificationAsync(string userId, string notificationId)
+        {
+            var notification = await firebaseDatabase
+              .Child("Notifications")
+              .Child(userId)
+              .Child(notificationId)
+              .OnceSingleAsync<Notification>();
+            return notification;
+        }
         public static async Task<IEnumerable<NotificationResponse>?> GetNotificationsAsync(string userId)
         {
             var result = await firebaseDatabase

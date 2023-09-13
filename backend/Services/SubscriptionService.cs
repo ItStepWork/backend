@@ -1,4 +1,5 @@
 ﻿using backend.Models;
+using backend.Models.Enums;
 using Firebase.Database;
 using Firebase.Database.Streaming;
 using Newtonsoft.Json;
@@ -151,17 +152,17 @@ namespace backend.Services
             if (result != null) result.Dispose();
             Console.WriteLine("Unsubscribe\t id: " + subscription.WebSocket.GetHashCode());
         }
-        public static async Task SubscribeToFriendRequestAsync(HttpContext httpContext, string path, string userId)
+        public static async Task SubscribeToNotificationAsync(HttpContext httpContext, string userId, NotificationType type, string title)
         {
             var startTime = DateTime.UtcNow;
             Subscription subscription = new();
             subscription.EndTime = DateTime.UtcNow.AddMinutes(2);
             subscription.WebSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
             Echo(subscription);
-            List<string> friends = new();
+            List<string> notifications = new();
             DateTime start = DateTime.UtcNow.AddSeconds(5);
 
-            var result = SubscribeFirebase(path + "/" + userId, async data =>
+            var result = SubscribeFirebase("Notifications/" + userId, async data =>
             {
                 try
                 {
@@ -174,29 +175,25 @@ namespace backend.Services
                     {
                         if (DateTime.UtcNow > start)
                         {
-                            string json = JsonConvert.SerializeObject(data.Object);
-                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, FriendRequest>>(json);
-                            if (dictionary != null)
+                            var notification = await NotificationService.GetNotificationAsync(userId, data.Key);
+                            if (notification?.Id != null && notification.Type == type)
                             {
-                                foreach (var friend in dictionary)
+                                if (!notifications.Contains(notification.Id))
                                 {
-                                    if (!friends.Contains(friend.Key))
+                                    notifications.Add(notification.Id);
+                                    if (!string.IsNullOrEmpty(notification.SenderId) && notification.SenderId != userId)
                                     {
-                                        friends.Add(friend.Key);
-                                        if (!string.IsNullOrEmpty(friend.Value.SenderId) && friend.Value.SenderId != userId)
+                                        UserBase? user = await UserService.GetUserAsync(notification.SenderId);
+                                        if (user != null)
                                         {
-                                            UserBase? user = await UserService.GetUserAsync(friend.Value.SenderId);
-                                            if (user != null)
+                                            SubscriptionResponse response = new SubscriptionResponse();
+                                            response.Title = title;
+                                            response.AvatarUrl = user.AvatarUrl;
+                                            response.Text = user.FirstName + " " + user.LastName;
+                                            var serverMsg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
+                                            if (subscription.WebSocket.State == WebSocketState.Open)
                                             {
-                                                SubscriptionResponse response = new SubscriptionResponse();
-                                                response.Title = "Запрос в друзья";
-                                                response.AvatarUrl = user.AvatarUrl;
-                                                response.Text = user.FirstName + " " + user.LastName;
-                                                var serverMsg = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(response));
-                                                if (subscription.WebSocket.State == WebSocketState.Open)
-                                                {
-                                                    await subscription.WebSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
-                                                }
+                                                await subscription.WebSocket.SendAsync(serverMsg, WebSocketMessageType.Text, true, CancellationToken.None);
                                             }
                                         }
                                     }
@@ -205,15 +202,7 @@ namespace backend.Services
                         }
                         else
                         {
-                            string json = JsonConvert.SerializeObject(data.Object);
-                            var dictionary = JsonConvert.DeserializeObject<Dictionary<string, FriendRequest>>(json);
-                            if (dictionary != null)
-                            {
-                                foreach (var item in dictionary)
-                                {
-                                    friends.Add(item.Key);
-                                }
-                            }
+                            notifications.Add(data.Key);
                         }
                     }
                     else if (subscription.WebSocket.State == WebSocketState.Open)
@@ -223,7 +212,7 @@ namespace backend.Services
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Exception SubscribeToFriendRequestAsync");
+                    Console.WriteLine("Exception SubscribeToNotificationAsync");
                     Console.WriteLine(ex.ToString());
                 }
             });

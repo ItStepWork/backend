@@ -17,7 +17,7 @@ namespace backend.Controllers
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {
-                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, "Messages", resultValidate.user.Id);
+                await SubscriptionService.SubscribeToMessagesAsync(this.HttpContext, "Messages", resultValidate.user.Id);
             }
         }
         [Authorize]
@@ -66,7 +66,7 @@ namespace backend.Controllers
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {
-                await SubscriptionService.SubscribeToFriendRequestAsync(this.HttpContext, "Friends", resultValidate.user.Id);
+                await SubscriptionService.SubscribeToNotificationAsync(this.HttpContext, resultValidate.user.Id, Models.Enums.NotificationType.AddFriend, "Запрос в друзья");
             }
         }
         [Authorize]
