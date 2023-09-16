@@ -2,6 +2,7 @@
 using backend.Models.Enums;
 using Firebase.Database;
 using Firebase.Database.Query;
+using MimeKit;
 
 namespace backend.Services
 {
@@ -102,6 +103,21 @@ namespace backend.Services
               .OnceAsync<FriendRequest>();
             return friends? .Select(x => x.Object);
         }
+        public static async Task<Friend?> GetFriendAsync(string myId, string userId)
+        {
+            var result = await firebaseDatabase
+                  .Child($"Friends/{myId}/{userId}")
+                  .OnceSingleAsync<FriendRequest>();
+            var friend = await GetFriendAsync(userId);
+            if (result == null) friend.FriendStatus = FriendStatus.Other;
+            else
+            {
+                if (result.IsConfirmed) friend.FriendStatus = FriendStatus.Confirmed;
+                else if (result.SenderId == myId) friend.FriendStatus = FriendStatus.Waiting;
+                else friend.FriendStatus = FriendStatus.Unconfirmed;
+            }
+            return friend;
+        }
         public static async Task<IEnumerable<Friend?>?> GetFriendsAsync(string senderId, string userId)
         {
             if (senderId == userId)
@@ -159,6 +175,7 @@ namespace backend.Services
                 return list;
             }
         }
+
         public static async Task<IEnumerable<UserBase>> GetConfirmedFriends(string senderId, string userId)
         {
             var friends = await firebaseDatabase
