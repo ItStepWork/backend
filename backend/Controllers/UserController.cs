@@ -52,6 +52,7 @@ namespace backend.Controllers
             if(!string.IsNullOrEmpty(data.Born))
             {
                 DateOnly born = DateOnly.Parse(data.Born.ToString());
+                user.BirthDay = born.ToDateTime(TimeOnly.Parse("1:00 PM"));
                 user.Born = born.ToLongDateString();
             }
             user.Email = data.Email;

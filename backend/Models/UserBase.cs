@@ -11,6 +11,7 @@ namespace backend.Models
         public Role? Role { get; set; }
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public Status? Status { get; set; }
+        public DateTime BirthDay { get; set; }
         public DateTime LastVisit { get; set; }
         public string? Born { get; set; }
         public string? FirstName { get; set; }
