@@ -18,7 +18,16 @@ namespace backend.Controllers
 
             return Ok(result);
         }
+        [HttpGet("GetFriend")]
+        public async Task<ActionResult> GetFriend(string id)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
+            var result = await FriendService.GetFriendAsync(resultValidate.user.Id, id);
+
+            return Ok(result);
+        }
         [HttpGet("GetConfirmedFriends")]
         public async Task<ActionResult> GetConfirmedFriends(string id)
         {
