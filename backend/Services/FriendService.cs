@@ -118,6 +118,18 @@ namespace backend.Services
             }
             return friend;
         }
+        public static async Task<int?> GetFriendsCount(string userId)
+        {
+            var result = await firebaseDatabase
+                .Child($"Friends/{userId}")
+                .OnceAsync<FriendRequest>();
+            if (result == null) return 0;
+            var users = result.Select(item => item.Object);
+            var friends = users.Where(u => u.IsConfirmed == true);
+            return friends.Count();
+        }
+
+
         public static async Task<IEnumerable<Friend?>?> GetFriendsAsync(string senderId, string userId)
         {
             if (senderId == userId)
