@@ -20,5 +20,22 @@ namespace backend.Services
             await UserService.UpdateUserAsync(claimId.Value, sender);
             return ("", sender);
         }
+        public static async Task<ChartActivity> GetChartActivityAsync()
+        {
+            var result = await ActivityService.GetAllActivityAsync();
+            var resultContacts = result?.Where(x => x.Page == Models.Enums.Page.Contacts).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
+            var resultGallery = result?.Where(x => x.Page == Models.Enums.Page.Gallery).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
+            var resultGroups = result?.Where(x => x.Page == Models.Enums.Page.Groups).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
+            var resultNotifications = result?.Where(x => x.Page == Models.Enums.Page.Notifications).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
+            var resultMessaging = result?.Where(x => x.Page == Models.Enums.Page.Messaging).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
+            
+            ChartActivity chartActivity = new();
+            chartActivity.Contacts = resultContacts?.Select(item => new Point() { Y = item.Count(), X = item.ElementAt(0).DateTime });
+            chartActivity.Gallery = resultGallery?.Select(item => new Point() { Y = item.Count(), X = item.ElementAt(0).DateTime });
+            chartActivity.Groups = resultGroups?.Select(item => new Point() { Y = item.Count(), X = item.ElementAt(0).DateTime });
+            chartActivity.Notifications = resultNotifications?.Select(item => new Point() { Y = item.Count(), X = item.ElementAt(0).DateTime });
+            chartActivity.Messaging = resultMessaging?.Select(item => new Point() { Y = item.Count(), X = item.ElementAt(0).DateTime });
+            return chartActivity;
+        }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using backend.Models;
+using backend.Models.Enums;
 using Firebase.Database;
 using Firebase.Database.Query;
 using Firebase.Storage;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -35,6 +37,7 @@ namespace backend.Services
         }
         public static async Task<(string response, User? user)> ValidationUser(HttpContext httpContext)
         {
+
             Claim? claimId = httpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
             if (claimId == null) return ("User not authorize!", null);
 
@@ -43,6 +46,27 @@ namespace backend.Services
 
             sender.LastVisit = DateTime.UtcNow;
             await UpdateUserAsync(claimId.Value, sender);
+
+            var path = httpContext.Request.Path;
+            if (path.HasValue)
+            {
+                Page? page = null;
+                if (path.Value.StartsWith("/Friend/")) page = Page.Contacts;
+                else if (path.Value.StartsWith("/Messaging/")) page = Page.Messaging;
+                else if (path.Value.StartsWith("/Gallery/")) page = Page.Gallery;
+                else if (path.Value.StartsWith("/Notification/")) page = Page.Notifications;
+                else if (path.Value.StartsWith("/Group/")) page = Page.Groups;
+                else if (path.Value.StartsWith("/Auth/")) page = Page.Authorization;
+                if (page != null)
+                {
+                    Activity activity = new();
+                    activity.Page = page;
+                    activity.UserId = sender.Id;
+                    activity.DateTime = DateTime.UtcNow;
+                    await ActivityService.AddActivityAsync(activity);
+                }
+            }
+
             return ("", sender);
         }
         public static async Task<FirebaseObject<User>> AddUserAsync(User user)
