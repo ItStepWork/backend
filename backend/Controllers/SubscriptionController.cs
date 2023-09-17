@@ -21,6 +21,17 @@ namespace backend.Controllers
             }
         }
         [Authorize]
+        [HttpGet("SubscribeToUserUpdates")]
+        public async Task SubscribeToUserUpdates(string id)
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
+            else
+            {
+                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Users/{id}", "Update user");
+            }
+        }
+        [Authorize]
         [HttpGet("SubscribeToMessagesUpdates")]
         public async Task SubscribeToMessagesUpdates()
         {
