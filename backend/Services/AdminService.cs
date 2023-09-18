@@ -20,7 +20,7 @@ namespace backend.Services
             await UserService.UpdateUserAsync(claimId.Value, sender);
             return ("", sender);
         }
-        public static async Task<ChartActivity> GetChartActivityAsync()
+        public static async Task<ChartActivity> GetDailyPagesActivityChartAsync()
         {
             var result = await ActivityService.GetAllActivityAsync();
             var resultContacts = result?.Where(x => x.Page == Models.Enums.Page.Contacts).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
@@ -36,6 +36,14 @@ namespace backend.Services
             chartActivity.Notifications = resultNotifications?.Select(item => new Point() { Y = item.Count(), X = item.ElementAt(0).DateTime });
             chartActivity.Messaging = resultMessaging?.Select(item => new Point() { Y = item.Count(), X = item.ElementAt(0).DateTime });
             return chartActivity;
+        }
+        public static async Task<IEnumerable<Point>?> GetDailyActivityChartAsync()
+        {
+            var result = await ActivityService.GetAllActivityAsync();
+            var newResult = result?.Select(x => { x.DateTime = new DateTime(x.DateTime.Year, x.DateTime.Month, x.DateTime.Day, x.DateTime.Hour, 30, 0, DateTimeKind.Utc); return x; });
+            var group = newResult?.GroupBy(x => x.DateTime);
+            var points = group?.Select(list => new Point() { Y = list.GroupBy(y => y.UserId).Count(), X = list.ElementAt(0).DateTime });
+            return points;
         }
     }
 }
