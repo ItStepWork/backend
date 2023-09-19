@@ -16,7 +16,6 @@ namespace backend.Controllers
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             var result = await NotificationService.GetNotificationsAsync(resultValidate.user.Id);
-
             return Ok(result);
         }
         [HttpPost("InviteToGroup")]
