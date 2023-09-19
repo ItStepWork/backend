@@ -54,7 +54,7 @@ namespace backend.Services
                 if (path.Value.StartsWith("/Friend/")) page = Page.Contacts;
                 else if (path.Value.StartsWith("/Messaging/")) page = Page.Messaging;
                 else if (path.Value.StartsWith("/Gallery/")) page = Page.Gallery;
-                else if (path.Value.StartsWith("/Notification/")) page = Page.Notifications;
+                else if (path.Value.StartsWith("/Notifications/")) page = Page.Notifications;
                 else if (path.Value.StartsWith("/Group/")) page = Page.Groups;
                 else if (path.Value.StartsWith("/Auth/")) page = Page.Authorization;
                 if (page != null)
