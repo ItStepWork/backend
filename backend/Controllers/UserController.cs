@@ -18,6 +18,15 @@ namespace backend.Controllers
             var user = await UserService.GetUserAsync(id);
             return Ok(user);
         }
+        [HttpGet("GetCurrentUser")]
+        public async Task<ActionResult> GetCurrentUser()
+        {
+            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var user = await UserService.GetUserAsync(resultValidate.user.Id);
+            return Ok(user);
+        }
         [HttpGet("GetUsers")]
         public async Task<ActionResult> GetUsers()
         {
