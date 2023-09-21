@@ -44,6 +44,11 @@ namespace backend.Services
             User? sender = await FindUserByIdAsync(claimId.Value);
             if (sender == null) return ("Sender not found!", null);
 
+            var remoteIpAddress = httpContext.Connection.RemoteIpAddress;
+            var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
+                    ? remoteIpAddress.MapToIPv4().ToString()
+                    : remoteIpAddress?.ToString();
+            sender.IpAddress = ipAddress;
             sender.LastVisit = DateTime.UtcNow;
             await UpdateUserAsync(claimId.Value, sender);
 

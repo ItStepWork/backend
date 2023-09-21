@@ -26,5 +26,6 @@ namespace backend.Models
         public string? Joined { get; set; }
         public string? AvatarUrl { get; set; }
         public string? BackgroundUrl { get; set; }
+        public string? IpAddress { get; set; }
     }
 }
