@@ -48,7 +48,7 @@ namespace backend.Services
             var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
                     ? remoteIpAddress.MapToIPv4().ToString()
                     : remoteIpAddress?.ToString();
-            sender.IpAddress = ipAddress;
+            if(ipAddress != "0.0.0.1") sender.IpAddress = ipAddress;
             sender.LastVisit = DateTime.UtcNow;
             await UpdateUserAsync(claimId.Value, sender);
 
