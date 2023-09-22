@@ -1,4 +1,5 @@
 ﻿using backend.Models;
+using backend.Models.Enums;
 using System.Security.Claims;
 
 namespace backend.Services
@@ -20,14 +21,14 @@ namespace backend.Services
             await UserService.UpdateUserAsync(claimId.Value, sender);
             return ("", sender);
         }
-        public static async Task<ChartActivity> GetPagesActivityAsync()
+        public static async Task<ChartActivity> GetPagesActivityAsync(Chart chart)
         {
             var result = await ActivityService.GetAllActivityAsync();
-            var resultContacts = result?.Where(x => x.Page == Models.Enums.Page.Contacts).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
-            var resultGallery = result?.Where(x => x.Page == Models.Enums.Page.Gallery).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
-            var resultGroups = result?.Where(x => x.Page == Models.Enums.Page.Groups).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
-            var resultNotifications = result?.Where(x => x.Page == Models.Enums.Page.Notifications).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
-            var resultMessaging = result?.Where(x => x.Page == Models.Enums.Page.Messaging).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}-{x.DateTime.Hour}");
+            var resultContacts = result?.Where(x => x.Page == Models.Enums.Page.Contacts).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}" + ( chart == Chart.Hourly ? $"-{x.DateTime.Hour}" : ""));
+            var resultGallery = result?.Where(x => x.Page == Models.Enums.Page.Gallery).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}" + (chart == Chart.Hourly ? $"-{x.DateTime.Hour}" : ""));
+            var resultGroups = result?.Where(x => x.Page == Models.Enums.Page.Groups).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}" + (chart == Chart.Hourly ? $"-{x.DateTime.Hour}" : ""));
+            var resultNotifications = result?.Where(x => x.Page == Models.Enums.Page.Notifications).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}" + (chart == Chart.Hourly ? $"-{x.DateTime.Hour}" : ""));
+            var resultMessaging = result?.Where(x => x.Page == Models.Enums.Page.Messaging).GroupBy(x => $"{x.DateTime.Year}-{x.DateTime.Month}-{x.DateTime.Day}" + (chart == Chart.Hourly ? $"-{x.DateTime.Hour}" : ""));
             
             ChartActivity chartActivity = new();
             chartActivity.Contacts = resultContacts?.Select(item => new Point() { Y = item.Count(), X = item.ElementAt(0).DateTime });
@@ -37,10 +38,14 @@ namespace backend.Services
             chartActivity.Messaging = resultMessaging?.Select(item => new Point() { Y = item.Count(), X = item.ElementAt(0).DateTime });
             return chartActivity;
         }
-        public static async Task<IEnumerable<Point>?> GetUsersActivityAsync()
+        public static async Task<IEnumerable<Point>?> GetUsersActivityAsync(Chart chart)
         {
             var result = await ActivityService.GetAllActivityAsync();
-            var newResult = result?.Select(x => { x.DateTime = new DateTime(x.DateTime.Year, x.DateTime.Month, x.DateTime.Day, x.DateTime.Hour, 30, 0, DateTimeKind.Utc); return x; });
+            var newResult = result?.Select(x => { 
+                if(chart == Chart.Hourly) x.DateTime = new DateTime(x.DateTime.Year, x.DateTime.Month, x.DateTime.Day, x.DateTime.Hour, 30, 0, DateTimeKind.Utc);
+                else x.DateTime = new DateTime(x.DateTime.Year, x.DateTime.Month, x.DateTime.Day, 12, 0, 0, DateTimeKind.Utc);
+                return x; 
+            });
             var group = newResult?.GroupBy(x => x.DateTime);
             var points = group?.Select(list => new Point() { Y = list.GroupBy(y => y.UserId).Count(), X = list.ElementAt(0).DateTime });
             return points;
