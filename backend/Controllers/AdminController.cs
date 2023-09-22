@@ -1,7 +1,5 @@
-﻿using backend.Models;
-using backend.Services;
+﻿using backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography.X509Certificates;
 
 namespace backend.Controllers
 {
@@ -27,22 +25,22 @@ namespace backend.Controllers
             var result = await ActivityService.GetAllActivityAsync();
             return Ok(result);
         }
-        [HttpGet("GetDailyPagesActivityChart")]
-        public async Task<ActionResult> GetDailyPagesActivityChart()
+        [HttpGet("GetPagesActivity")]
+        public async Task<ActionResult> GetPagesActivity()
         {
             var resultValidate = await AdminService.ValidationAdmin(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var result = await AdminService.GetDailyPagesActivityChartAsync();
+            var result = await AdminService.GetPagesActivityAsync();
             return Ok(result);
         }
-        [HttpGet("GetDailyActivityChart")]
-        public async Task<ActionResult> GetDailyActivityChart()
+        [HttpGet("GetUsersActivity")]
+        public async Task<ActionResult> GetUsersActivity()
         {
             var resultValidate = await AdminService.ValidationAdmin(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            var result = await AdminService.GetDailyActivityChartAsync();
+            var result = await AdminService.GetUsersActivityAsync();
             return Ok(result);
         }
     }
