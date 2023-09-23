@@ -48,7 +48,7 @@ namespace backend.Services
             var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
                     ? remoteIpAddress.MapToIPv4().ToString()
                     : remoteIpAddress?.ToString();
-            if(ipAddress != "0.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
+            if(!string.IsNullOrEmpty(ipAddress) && ipAddress != "0.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
             await UpdateUserLastVisitAsync(claimId.Value);
 
             var path = httpContext.Request.Path;
@@ -145,13 +145,13 @@ namespace backend.Services
               .Child("AvatarUrl")
               .PutAsync<string>(avatarUrl);
         }
-        public static async Task UpdateUserIpAddressAsync(string userId, string? ipAddress)
+        public static async Task UpdateUserIpAddressAsync(string userId, string ipAddress)
         {
             await firebaseDatabase
               .Child("Users")
               .Child(userId)
               .Child("IpAddress")
-              .PutAsync(ipAddress);
+              .PutAsync<string>(ipAddress);
         }
         public static async Task UpdateUserLastVisitAsync(string userId)
         {
