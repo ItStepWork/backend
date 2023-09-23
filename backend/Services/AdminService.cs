@@ -17,8 +17,7 @@ namespace backend.Services
 
             if (sender.Role != Models.Enums.Role.Admin || sender.Role.ToString() != claimRole.Value) return ("User not access!", null);
 
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
+            await UserService.UpdateUserLastVisitAsync(claimId.Value);
             return ("", sender);
         }
         public static async Task<ChartActivity> GetPagesActivityAsync(Chart chart)

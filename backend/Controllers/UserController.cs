@@ -79,25 +79,22 @@ namespace backend.Controllers
         }
 
         [HttpPost("UpdateUserPassword")]
-        public async Task<ActionResult> UpdateUserPassword(Request data)
+        public async Task<ActionResult> UpdateUserPassword(Request request)
         {
+            if (string.IsNullOrEmpty(request.OldPassword) || string.IsNullOrEmpty(request.NewPassword)) return BadRequest("Data is null or empty");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             User user = resultValidate.user;
 
             // Update user
-            if (data.OldPassword != null)
-            {
-                if (data.NewPassword.Length < 6) return BadRequest("Password less than 6 characters!");
-                if (!BCrypt.Net.BCrypt.Verify(data.OldPassword, user.Password)) return Conflict("Passwords are not the same!");
-               
-                user.Password = BCrypt.Net.BCrypt.HashPassword(data.NewPassword);
-                string[] mailDescription = { "Восстановление пароля в", "Ваш пароль был успешно заменен", "Ваши данные при регистрации:" };
-                await EmailService.SendEmailAsync(user.Email, "Смена пароля на Connections", user.FirstName, user.LastName, user.Joined, data.NewPassword, mailDescription);
-            }
+            if (request.NewPassword.Length < 6) return BadRequest("Password less than 6 characters!");
+            if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.Password)) return Conflict("Passwords are not the same!");
 
-            await UserService.UpdateUserAsync(resultValidate.user.Id, user);
+            await UserService.UpdateUserPasswordAsync(resultValidate.user.Id, BCrypt.Net.BCrypt.HashPassword(request.NewPassword));
+
+            string[] mailDescription = { "Восстановление пароля в", "Ваш пароль был успешно заменен", "Ваши данные при регистрации:" };
+            await EmailService.SendEmailAsync(user.Email, "Смена пароля на Connections", user.FirstName, user.LastName, user.Joined, request.NewPassword, mailDescription);
 
             return Ok("User is Updated");
         }
@@ -119,9 +116,7 @@ namespace backend.Controllers
 
             await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, photo.Key, result);
 
-            resultValidate.user.AvatarUrl = url;
-
-            await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
+            await UserService.UpdateUserAvatarUrlAsync(resultValidate.user.Id, url);
 
             return Ok(resultValidate.user);
         }
@@ -142,9 +137,7 @@ namespace backend.Controllers
 
             await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, photo.Key, result);
 
-            resultValidate.user.BackgroundUrl = url;
-
-            await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
+            await UserService.UpdateUserBackgroundUrlAsync(resultValidate.user.Id, url);
 
             return Ok(resultValidate.user);
         }

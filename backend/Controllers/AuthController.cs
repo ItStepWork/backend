@@ -18,11 +18,9 @@ namespace backend.Controllers
             var find = await UserService.FindUserByEmailAsync(email);
             if (find != null && find.Object != null)
             {
-                User user = find.Object;
-                if (!BCrypt.Net.BCrypt.Verify(password, user.Password)) return Conflict("Wrong data");
+                if (!BCrypt.Net.BCrypt.Verify(password, find.Object.Password)) return Conflict("Wrong data");
 
-                user.LastVisit = DateTime.UtcNow;
-                await UserService.UpdateUserAsync(find.Key, user);
+                await UserService.UpdateUserLastVisitAsync(find.Key);
                 var response = UserService.GetToken(find);
                 return Ok(response);
             }

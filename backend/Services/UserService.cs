@@ -48,9 +48,8 @@ namespace backend.Services
             var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
                     ? remoteIpAddress.MapToIPv4().ToString()
                     : remoteIpAddress?.ToString();
-            if(ipAddress != "0.0.0.1") sender.IpAddress = ipAddress;
-            sender.LastVisit = DateTime.UtcNow;
-            await UpdateUserAsync(claimId.Value, sender);
+            if(ipAddress != "0.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
+            await UpdateUserLastVisitAsync(claimId.Value);
 
             var path = httpContext.Request.Path;
             if (path.HasValue)
@@ -121,6 +120,46 @@ namespace backend.Services
               .Child("Users")
               .Child(userId)
               .PutAsync(user);
+        }
+        public static async Task UpdateUserPasswordAsync(string userId, string password)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("Password")
+              .PutAsync<string>(password);
+        }
+        public static async Task UpdateUserBackgroundUrlAsync(string userId, string backgroundUrl)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("BackgroundUrl")
+              .PutAsync<string>(backgroundUrl);
+        }
+        public static async Task UpdateUserAvatarUrlAsync(string userId, string avatarUrl)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("AvatarUrl")
+              .PutAsync<string>(avatarUrl);
+        }
+        public static async Task UpdateUserIpAddressAsync(string userId, string? ipAddress)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("IpAddress")
+              .PutAsync(ipAddress);
+        }
+        public static async Task UpdateUserLastVisitAsync(string userId)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("LastVisit")
+              .PutAsync(DateTime.UtcNow);
         }
         public static async Task RemoveUserAsync(string userId)
         {

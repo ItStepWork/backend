@@ -76,21 +76,21 @@ namespace backend.Controllers
         [HttpPost("SetAvatar")]
         public async Task<ActionResult> SetAvatar(Request request)
         {
+            if (string.IsNullOrEmpty(request.Url)) return BadRequest("Url is null or empty");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            resultValidate.user.AvatarUrl = request.Url;
-            await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
+            await UserService.UpdateUserAvatarUrlAsync(resultValidate.user.Id, request.Url);
             return Ok("Ok");
         }
         [HttpPost("SetBackground")]
         public async Task<ActionResult> SetBackground(Request request)
         {
+            if (string.IsNullOrEmpty(request.Url)) return BadRequest("Url is null or empty");
             var resultValidate = await UserService.ValidationUser(this.HttpContext);
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
-            resultValidate.user.BackgroundUrl = request.Url;
-            await UserService.UpdateUserAsync(resultValidate.user.Id, resultValidate.user);
+            await UserService.UpdateUserBackgroundUrlAsync(resultValidate.user.Id, request.Url);
             return Ok("Ok");
         }
         [HttpPost("SetAlbum")]
