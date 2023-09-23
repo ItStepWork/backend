@@ -159,7 +159,7 @@ namespace backend.Services
               .Child("Users")
               .Child(userId)
               .Child("LastVisit")
-              .PutAsync(DateTime.UtcNow);
+              .PutAsync<string>(DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffK"));
         }
         public static async Task RemoveUserAsync(string userId)
         {
