@@ -22,7 +22,7 @@ namespace backend.Services
             Echo(subscription);
 
             bool isSend = true;
-            var startTime = DateTime.UtcNow.AddSeconds(5);
+            var startTime = DateTime.UtcNow.AddSeconds(1);
             var result = SubscribeFirebase(path, async data =>
             {
                 try
@@ -83,7 +83,7 @@ namespace backend.Services
                     }
                     if (check)
                     {
-                        if (DateTime.UtcNow > start.AddSeconds(5))
+                        if (DateTime.UtcNow > start.AddSeconds(1))
                         {
                             string json = JsonConvert.SerializeObject(data.Object);
                             var dictionary = JsonConvert.DeserializeObject<Dictionary<string, Message>>(json);
@@ -160,7 +160,7 @@ namespace backend.Services
             subscription.WebSocket = await httpContext.WebSockets.AcceptWebSocketAsync("client");
             Echo(subscription);
             List<string> notifications = new();
-            DateTime start = DateTime.UtcNow.AddSeconds(5);
+            DateTime start = DateTime.UtcNow.AddSeconds(1);
 
             var result = SubscribeFirebase("Notifications/" + userId, async data =>
             {
