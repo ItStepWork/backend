@@ -1,4 +1,5 @@
-﻿using backend.Models.Enums;
+﻿using backend.Models;
+using backend.Models.Enums;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,6 +44,26 @@ namespace backend.Controllers
 
             var result = await AdminService.GetUsersActivityAsync(chart);
             return Ok(result);
+        }
+        [HttpPost("UpdateUserStatus")]
+        public async Task<ActionResult> UpdateUserStatus(Request request)
+        {
+            if (request.Status == null || string.IsNullOrEmpty(request.UserId)) return BadRequest("Data is null or empty");
+            var resultValidate = await AdminService.ValidationAdmin(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await UserService.UpdateUserStatusAsync(request.UserId, (Status)request.Status);
+            return Ok("Ok");
+        }
+        [HttpPost("UpdateUserRole")]
+        public async Task<ActionResult> UpdateUserRole(Request request)
+        {
+            if (request.Role == null || string.IsNullOrEmpty(request.UserId)) return BadRequest("Data is null or empty");
+            var resultValidate = await AdminService.ValidationAdmin(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await UserService.UpdateUserRoleAsync(request.UserId, (Role)request.Role);
+            return Ok("Ok");
         }
     }
 }

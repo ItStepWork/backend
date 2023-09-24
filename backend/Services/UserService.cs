@@ -121,6 +121,22 @@ namespace backend.Services
               .Child(userId)
               .PutAsync(user);
         }
+        public static async Task UpdateUserRoleAsync(string userId, Role role)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("Role")
+              .PutAsync<int>((int)role);
+        }
+        public static async Task UpdateUserStatusAsync(string userId, Status status)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("Status")
+              .PutAsync<int>((int)status);
+        }
         public static async Task UpdateUserPasswordAsync(string userId, string password)
         {
             await firebaseDatabase
