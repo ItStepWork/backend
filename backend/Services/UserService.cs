@@ -48,7 +48,7 @@ namespace backend.Services
             var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
                     ? remoteIpAddress.MapToIPv4().ToString()
                     : remoteIpAddress?.ToString();
-            if(!string.IsNullOrEmpty(ipAddress) && ipAddress != "127.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
+            if(!string.IsNullOrEmpty(ipAddress) && ipAddress != "127.0.0.1" && ipAddress != "0.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
             await UpdateUserLastVisitAsync(claimId.Value);
 
             var path = httpContext.Request.Path;
@@ -120,6 +120,22 @@ namespace backend.Services
               .Child("Users")
               .Child(userId)
               .PutAsync(user);
+        }
+        public static async Task UpdateUserRoleAsync(string userId, Role role)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("Role")
+              .PutAsync<int>((int)role);
+        }
+        public static async Task UpdateUserStatusAsync(string userId, Status status)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("Status")
+              .PutAsync<int>((int)status);
         }
         public static async Task UpdateUserPasswordAsync(string userId, string password)
         {

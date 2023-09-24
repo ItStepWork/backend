@@ -7,9 +7,7 @@ namespace backend.Models
     {
         public string? Id { get; set; }
         public string? Email { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
         public Role? Role { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
         public Status? Status { get; set; }
         public DateTime BirthDay { get; set; }
         public DateTime LastVisit { get; set; }
@@ -19,7 +17,6 @@ namespace backend.Models
         public string? LastName { get; set; }
         public string? Phone { get; set; }
         public string? FamilyStatus { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
         public Gender? Gender { get; set; }
         public string? AboutMe { get; set; } 
         public string? Location { get; set; }

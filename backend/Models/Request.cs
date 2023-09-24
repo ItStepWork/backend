@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using backend.Models.Enums;
+﻿using backend.Models.Enums;
 
 namespace backend.Models
 {
@@ -15,8 +14,9 @@ namespace backend.Models
         public string? Url { get; set; }
         public string? Name { get; set; }
         public IFormFile[]? Files { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
         public Audience? Audience { get; set; }
+        public Status? Status { get; set; }
+        public Role? Role { get; set; }
         public string? Description { get; set; }
         public IFormFile? File { get; set; }
         public string? OldPassword { get; set; }

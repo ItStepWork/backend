@@ -1,5 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using backend.Models.Enums;
+﻿using backend.Models.Enums;
 
 namespace backend.Models
 {
@@ -10,7 +9,6 @@ namespace backend.Models
         public string? AdminId { get; set; }
         public string? Email { get; set; }
         public string? Name { get; set; }
-        [JsonConverter(typeof(JsonStringEnumConverter))]
         public Audience? Audience { get; set; }
         public string? Description { get; set; }
         public Dictionary<string,bool> Users { get; set; }= new Dictionary<string,bool>();
