@@ -16,7 +16,9 @@ namespace backend.Controllers
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             var result = await UserService.GetUsersAsync();
-            return Ok(result);
+            var sortModerator = result?.OrderByDescending(user => user.Role == Role.Moderator);
+            var sortAdmin = sortModerator?.OrderByDescending(user=>user.Role == Role.Admin);
+            return Ok(sortAdmin);
         }
         [HttpGet("GetAllActivity")]
         public async Task<ActionResult> GetAllActivity()

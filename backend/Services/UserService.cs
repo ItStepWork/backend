@@ -48,7 +48,7 @@ namespace backend.Services
             var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
                     ? remoteIpAddress.MapToIPv4().ToString()
                     : remoteIpAddress?.ToString();
-            if(!string.IsNullOrEmpty(ipAddress) && ipAddress != "127.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
+            if(!string.IsNullOrEmpty(ipAddress) && ipAddress != "127.0.0.1" && ipAddress != "0.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
             await UpdateUserLastVisitAsync(claimId.Value);
 
             var path = httpContext.Request.Path;
