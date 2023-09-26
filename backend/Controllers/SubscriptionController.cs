@@ -13,7 +13,7 @@ namespace backend.Controllers
         [HttpGet("SubscribeToMessages")]
         public async Task SubscribeToMessages()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            var resultValidate = await UserService.ValidationUser(this);
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {
@@ -24,7 +24,7 @@ namespace backend.Controllers
         [HttpGet("SubscribeToUserUpdates")]
         public async Task SubscribeToUserUpdates(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            var resultValidate = await UserService.ValidationUser(this);
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {
@@ -35,7 +35,7 @@ namespace backend.Controllers
         [HttpGet("SubscribeToMessagesUpdates")]
         public async Task SubscribeToMessagesUpdates()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            var resultValidate = await UserService.ValidationUser(this);
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {
@@ -46,7 +46,7 @@ namespace backend.Controllers
         [HttpGet("SubscribeToGroupsUpdates")]
         public async Task SubscribeToGroupsUpdates()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            var resultValidate = await UserService.ValidationUser(this);
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {
@@ -57,7 +57,7 @@ namespace backend.Controllers
         [HttpGet("SubscribeToGroupUpdates")]
         public async Task SubscribeToGroupUpdates(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            var resultValidate = await UserService.ValidationUser(this);
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {
@@ -73,7 +73,7 @@ namespace backend.Controllers
         [HttpGet("SubscribeToFriendRequest")]
         public async Task SubscribeToFriendRequest()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            var resultValidate = await UserService.ValidationUser(this);
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {
@@ -84,7 +84,7 @@ namespace backend.Controllers
         [HttpGet("SubscribeToFriendsUpdates")]
         public async Task SubscribeToFriendsUpdates()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            var resultValidate = await UserService.ValidationUser(this);
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {
@@ -95,7 +95,7 @@ namespace backend.Controllers
         [HttpGet("SubscribeToNotificationUpdates")]
         public async Task SubscribeToNotificationUpdates()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
+            var resultValidate = await UserService.ValidationUser(this);
             if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
             else
             {

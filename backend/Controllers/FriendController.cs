@@ -11,8 +11,8 @@ namespace backend.Controllers
         [HttpGet("GetFriends")]
         public async Task<ActionResult> GetFriends(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await FriendService.GetFriendsAsync(resultValidate.user.Id, id);
 
@@ -21,8 +21,8 @@ namespace backend.Controllers
         [HttpGet("GetFriend")]
         public async Task<ActionResult> GetFriend(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await FriendService.GetFriendAsync(resultValidate.user.Id, id);
 
@@ -31,8 +31,8 @@ namespace backend.Controllers
         [HttpGet("GetFriendsCount")]
         public async Task<ActionResult> GetFriendsCount(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await FriendService.GetFriendsCount(id);
 
@@ -41,8 +41,8 @@ namespace backend.Controllers
         [HttpGet("GetConfirmedFriends")]
         public async Task<ActionResult> GetConfirmedFriends(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await FriendService.GetConfirmedFriends(resultValidate.user.Id, id);
 
@@ -51,8 +51,8 @@ namespace backend.Controllers
         [HttpGet("GetUnconfirmedFriends")]
         public async Task<ActionResult> GetUnconfirmedFriends(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await FriendService.GetUnconfirmedFriends(resultValidate.user.Id, id);
 
@@ -61,8 +61,8 @@ namespace backend.Controllers
         [HttpGet("GetWaitingFriends")]
         public async Task<ActionResult> GetWaitingFriends(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await FriendService.GetWaitingFriends(resultValidate.user.Id, id);
 
@@ -71,8 +71,8 @@ namespace backend.Controllers
         [HttpGet("GetOtherUsers")]
         public async Task<ActionResult> GetOtherUsers(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await FriendService.GetOtherUsers(resultValidate.user.Id, id);
 
@@ -82,8 +82,8 @@ namespace backend.Controllers
         public async Task<ActionResult> AddFriend(Request request)
         {
             if (string.IsNullOrEmpty(request.Id)) return BadRequest("Data is null or empty");
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
             if (resultValidate.user.Id == request.Id) return Conflict("Trying to add myself");
 
             User? recipient = await UserService.FindUserByIdAsync(request.Id);
@@ -100,8 +100,8 @@ namespace backend.Controllers
         [HttpPost("ConfirmFriend")]
         public async Task<ActionResult> ConfirmFriend(Request request)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             User? recipient = await UserService.FindUserByIdAsync(request.Id);
             if (recipient == null) return NotFound("Recipient not found!");
@@ -114,8 +114,8 @@ namespace backend.Controllers
         [HttpDelete("RemoveFriend")]
         public async Task<ActionResult> RemoveFriend(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");

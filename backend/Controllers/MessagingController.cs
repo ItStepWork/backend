@@ -12,8 +12,8 @@ namespace backend.Controllers
         public async Task<ActionResult> SendMessage([FromForm] Request request)
         {
             if (string.IsNullOrEmpty(request.Text) || string.IsNullOrEmpty(request.Id)) return BadRequest("Data is null or empty");
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
             if (resultValidate.user.Id == request.Id) return Conflict("Trying to send a message to yourself");
 
             User? recipient = await UserService.FindUserByIdAsync(request.Id);
@@ -27,8 +27,8 @@ namespace backend.Controllers
         [HttpGet("GetDialogs")]
         public async Task<ActionResult> GetDialogs()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await MessagingService.GetDialogs(resultValidate.user.Id);
             return Ok(result);
@@ -36,8 +36,8 @@ namespace backend.Controllers
         [HttpDelete("RemoveDialog")]
         public async Task<ActionResult> RemoveDialog(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             await MessagingService.RemoveDialogAsync(resultValidate.user.Id, id);
             return Ok("Ok");
@@ -45,8 +45,8 @@ namespace backend.Controllers
         [HttpDelete("RemoveMessageFull")]
         public async Task<ActionResult> RemoveMessageFull(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             await MessagingService.RemoveMessageAsync(resultValidate.user.Id, id, true);
             return Ok("Ok");
@@ -54,8 +54,8 @@ namespace backend.Controllers
         [HttpDelete("RemoveMessage")]
         public async Task<ActionResult> RemoveMessage(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             await MessagingService.RemoveMessageAsync(resultValidate.user.Id, id, false);
             return Ok("Ok");
@@ -63,8 +63,8 @@ namespace backend.Controllers
         [HttpGet("GetMessages")]
         public async Task<ActionResult> GetMessages(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");

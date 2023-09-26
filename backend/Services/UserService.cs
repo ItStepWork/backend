@@ -3,6 +3,8 @@ using backend.Models.Enums;
 using Firebase.Database;
 using Firebase.Database.Query;
 using Firebase.Storage;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
@@ -35,23 +37,29 @@ namespace backend.Services
             var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
             return new Response(user.Object, tokenString);
         }
-        public static async Task<(string response, User? user)> ValidationUser(HttpContext httpContext)
+        public static async Task<(ActionResult response, User? user)> ValidationUser(Controller controller)
         {
-
-            Claim? claimId = httpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return ("User not authorize!", null);
+            Claim? claimId = controller.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
+            if (claimId == null) return (controller.Unauthorized("User not authorize!"), null);
 
             User? sender = await FindUserByIdAsync(claimId.Value);
-            if (sender == null) return ("Sender not found!", null);
+            if (sender == null) return (controller.Unauthorized("Sender not found!"), null);
 
-            var remoteIpAddress = httpContext.Connection.RemoteIpAddress;
+            if (sender.BlockingTime > DateTime.UtcNow)
+            {
+                TimeSpan timeSpan = sender.BlockingTime - DateTime.UtcNow;
+                if (timeSpan < TimeSpan.FromDays(1)) return (controller.Conflict($"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"hh\:mm\:ss")}"), null);
+                else return (controller.Conflict($"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"dd")} days"), null);
+            }
+
+            var remoteIpAddress = controller.HttpContext.Connection.RemoteIpAddress;
             var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
                     ? remoteIpAddress.MapToIPv4().ToString()
                     : remoteIpAddress?.ToString();
-            if(!string.IsNullOrEmpty(ipAddress) && ipAddress != "127.0.0.1" && ipAddress != "0.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
+            if (!string.IsNullOrEmpty(ipAddress) && ipAddress != "127.0.0.1" && ipAddress != "0.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
             await UpdateUserLastVisitAsync(claimId.Value);
 
-            var path = httpContext.Request.Path;
+            var path = controller.HttpContext.Request.Path;
             if (path.HasValue)
             {
                 Page? page = null;
@@ -71,7 +79,7 @@ namespace backend.Services
                 }
             }
 
-            return ("", sender);
+            return (controller.Ok("Ok"), sender);
         }
         public static async Task<FirebaseObject<User>> AddUserAsync(User user)
         {
@@ -120,6 +128,14 @@ namespace backend.Services
               .Child("Users")
               .Child(userId)
               .PutAsync(user);
+        }
+        public static async Task UpdateUserBlockingTimeAsync(string userId, DateTime dateTime)
+        {
+            await firebaseDatabase
+              .Child("Users")
+              .Child(userId)
+              .Child("BlockingTime")
+              .PutAsync<string>(dateTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffK"));
         }
         public static async Task UpdateUserRoleAsync(string userId, Role role)
         {

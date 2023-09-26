@@ -12,8 +12,8 @@ namespace backend.Controllers
         [HttpGet("GetPhotos")]
         public async Task<ActionResult> GetPhotos(string userId)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var photos = await GalleryService.GetPhotosAsync(userId);
             return Ok(photos);
@@ -21,8 +21,8 @@ namespace backend.Controllers
         [HttpGet("GetPhoto")]
         public async Task<ActionResult> GetPhoto(string userId, string photoId)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await GalleryService.GetPhotoAsync(userId, photoId);
             return Ok(result);
@@ -30,8 +30,8 @@ namespace backend.Controllers
         [HttpGet("GetAlbumPhotos")]
         public async Task<ActionResult> GetAlbumPhotos(string userId, string albumId)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await GalleryService.GetPhotosAsync(userId, albumId);
             return Ok(result);
@@ -39,8 +39,8 @@ namespace backend.Controllers
         [HttpPost("AddPhoto")]
         public async Task<ActionResult> AddPhoto(IFormFile file)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var photo = await GalleryService.AddPhotoAsync(resultValidate.user.Id);
 
@@ -58,8 +58,8 @@ namespace backend.Controllers
         [HttpPost("SendCommentPhoto")]
         public async Task<ActionResult> SendCommentPhoto(Request request)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             await GalleryService.SendCommentPhotoAsync(resultValidate.user.Id, request.UserId, request.PhotoId, request.Text);
             return Ok("Ok");
@@ -67,8 +67,8 @@ namespace backend.Controllers
         [HttpPost("SetLikePhoto")]
         public async Task<ActionResult> SetLikePhoto(Request request)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             await GalleryService.SetLikePhotoAsync(resultValidate.user.Id, request.UserId, request.PhotoId);
             return Ok("Ok");
@@ -77,8 +77,8 @@ namespace backend.Controllers
         public async Task<ActionResult> SetAvatar(Request request)
         {
             if (string.IsNullOrEmpty(request.Url)) return BadRequest("Url is null or empty");
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             await UserService.UpdateUserAvatarUrlAsync(resultValidate.user.Id, request.Url);
             return Ok("Ok");
@@ -87,8 +87,8 @@ namespace backend.Controllers
         public async Task<ActionResult> SetBackground(Request request)
         {
             if (string.IsNullOrEmpty(request.Url)) return BadRequest("Url is null or empty");
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             await UserService.UpdateUserBackgroundUrlAsync(resultValidate.user.Id, request.Url);
             return Ok("Ok");
@@ -96,8 +96,8 @@ namespace backend.Controllers
         [HttpPost("SetAlbum")]
         public async Task<ActionResult> SetAlbum(Request request)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             if (string.IsNullOrEmpty(request.PhotoId) || request.AlbumId == null) return BadRequest("Wrong data");
             var result = await GalleryService.GetPhotoAsync(resultValidate.user.Id, request.PhotoId);
@@ -109,8 +109,8 @@ namespace backend.Controllers
         [HttpDelete("RemovePhoto")]
         public async Task<ActionResult> RemovePhoto(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             await GalleryService.RemovePhotoAsync(resultValidate.user.Id, id);
             return Ok("Ok");
@@ -118,8 +118,8 @@ namespace backend.Controllers
         [HttpGet("GetAlbums")]
         public async Task<ActionResult> GetAlbums(string userId)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await GalleryService.GetAlbumsAsync(userId);
             return Ok(result);
@@ -129,8 +129,8 @@ namespace backend.Controllers
         {
             if (string.IsNullOrEmpty(request.Name)) return BadRequest("Name is null or empty");
 
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var album = await GalleryService.AddAlbumAsync(resultValidate.user.Id);
 
@@ -159,8 +159,8 @@ namespace backend.Controllers
         [HttpDelete("RemoveAlbum")]
         public async Task<ActionResult> RemoveAlbum(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             await GalleryService.RemoveAlbumAsync(resultValidate.user.Id, id);
             return Ok("Ok");
@@ -168,8 +168,8 @@ namespace backend.Controllers
         [HttpDelete("RemoveAlbumAndPhotos")]
         public async Task<ActionResult> RemoveAlbumAndPhotos(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await GalleryService.GetPhotosAsync(resultValidate.user.Id, id);
             if(result == null || result.Count() == 0) return NotFound("Photos not found");

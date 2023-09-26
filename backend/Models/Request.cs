@@ -21,5 +21,6 @@ namespace backend.Models
         public IFormFile? File { get; set; }
         public string? OldPassword { get; set; }
         public string? NewPassword { get; set; }
+        public string? BlockingTime { get; set; }
     }
 }

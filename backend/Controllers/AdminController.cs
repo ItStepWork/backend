@@ -67,5 +67,15 @@ namespace backend.Controllers
             await UserService.UpdateUserRoleAsync(request.UserId, (Role)request.Role);
             return Ok("Ok");
         }
+        [HttpPost("UpdateUserBlockingTime")]
+        public async Task<ActionResult> UpdateUserBlockingTime(Request request)
+        {
+            if (string.IsNullOrEmpty(request.BlockingTime) || string.IsNullOrEmpty(request.UserId)) return BadRequest("Data is null or empty");
+            var resultValidate = await AdminService.ValidationAdmin(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await UserService.UpdateUserBlockingTimeAsync(request.UserId, DateTime.Parse(request.BlockingTime).ToUniversalTime());
+            return Ok("Ok");
+        }
     }
 }

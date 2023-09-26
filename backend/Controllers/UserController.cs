@@ -12,8 +12,8 @@ namespace backend.Controllers
         [HttpGet("GetUser")]
         public async Task<ActionResult> GetUser(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var user = await UserService.GetUserAsync(id);
             return Ok(user);
@@ -21,8 +21,8 @@ namespace backend.Controllers
         [HttpGet("GetCurrentUser")]
         public async Task<ActionResult> GetCurrentUser()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var user = await UserService.GetUserAsync(resultValidate.user.Id);
             return Ok(user);
@@ -30,8 +30,8 @@ namespace backend.Controllers
         [HttpGet("GetUsers")]
         public async Task<ActionResult> GetUsers()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             IEnumerable<UserBase>? users = await UserService.GetUsersAsync(resultValidate.user.Id);
             return Ok(users);
@@ -40,8 +40,8 @@ namespace backend.Controllers
         [HttpPost("UpdateUser")]
         public async Task<ActionResult> UpdateUser(User data)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             User user = resultValidate.user;
 
@@ -82,8 +82,8 @@ namespace backend.Controllers
         public async Task<ActionResult> UpdateUserPassword(Request request)
         {
             if (string.IsNullOrEmpty(request.OldPassword) || string.IsNullOrEmpty(request.NewPassword)) return BadRequest("Data is null or empty");
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             User user = resultValidate.user;
 
@@ -102,8 +102,8 @@ namespace backend.Controllers
         [HttpPost("SaveAvatar")]
         public async Task<ActionResult> SaveAvatar(IFormFile file)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var photo = await GalleryService.AddPhotoAsync(resultValidate.user.Id);
 
@@ -123,8 +123,8 @@ namespace backend.Controllers
         [HttpPost("SaveBackground")]
         public async Task<ActionResult> SaveBackground(IFormFile file)
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var photo = await GalleryService.AddPhotoAsync(resultValidate.user.Id);
 

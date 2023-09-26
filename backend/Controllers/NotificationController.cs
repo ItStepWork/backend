@@ -12,8 +12,8 @@ namespace backend.Controllers
         [HttpGet("GetNotifications")]
         public async Task<ActionResult> GetNotifications()
         {
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             var result = await NotificationService.GetNotificationsAsync(resultValidate.user.Id);
             return Ok(result);
@@ -22,8 +22,8 @@ namespace backend.Controllers
         public async Task<ActionResult> InviteToGroup(Request request)
         {
             if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.GroupId)) return BadRequest("Data in null or empty");
-            var resultValidate = await UserService.ValidationUser(this.HttpContext);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+            var resultValidate = await UserService.ValidationUser(this);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
             Group? group = await GroupService.GetGroupAsync(request.GroupId);
             if (group == null) return NotFound("Group not found");
