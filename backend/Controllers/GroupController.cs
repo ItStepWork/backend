@@ -1,7 +1,6 @@
 ﻿using backend.Models;
 using backend.Models.Enums;
 using backend.Services;
-using MailKit.Search;
 using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers

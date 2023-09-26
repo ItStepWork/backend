@@ -13,9 +13,11 @@ namespace backend.Services
         private static readonly FirebaseStorage firebaseStorage = new FirebaseStorage("database-50f39.appspot.com");
         public static async Task<(string response, string ok)> AddGroupAsync(Request groupRequest, string userId)
         {
-            UserBase user = await UserService.GetUserAsync(userId);
+            UserBase? user = await UserService.GetUserAsync(userId);
             if (user == null) return ("Admin user not found", "");
             Group group = new Group();
+            group.Status = Status.Active;
+            group.CreatedTime = DateTime.UtcNow;
             group.Name = groupRequest.Name;
             group.Description = groupRequest.Description;
             group.Audience = (Audience)groupRequest.Audience;

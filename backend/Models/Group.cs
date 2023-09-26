@@ -11,6 +11,9 @@ namespace backend.Models
         public string? Name { get; set; }
         public Audience? Audience { get; set; }
         public string? Description { get; set; }
+        public Status? Status { get; set; }
+        public DateTime BlockingTime { get; set; }
+        public DateTime CreatedTime { get; set; }
         public Dictionary<string,bool> Users { get; set; }= new Dictionary<string,bool>();
     }
 }

@@ -1,11 +1,15 @@
 ﻿using backend.Models;
 using backend.Models.Enums;
+using Firebase.Database;
+using Firebase.Database.Query;
 using System.Security.Claims;
 
 namespace backend.Services
 {
     public static class AdminService
     {
+        private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
+
         public static async Task<(string response, User? user)> ValidationAdmin(HttpContext httpContext)
         {
             Claim? claimRole = httpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role);
@@ -48,6 +52,22 @@ namespace backend.Services
             var group = newResult?.GroupBy(x => x.DateTime);
             var points = group?.Select(list => new Point() { Y = list.GroupBy(y => y.UserId).Count(), X = list.ElementAt(0).DateTime });
             return points;
+        }
+        public static async Task UpdateGroupStatusAsync(string groupId, Status status)
+        {
+            await firebaseDatabase
+              .Child("Groups")
+              .Child(groupId)
+              .Child("Status")
+              .PutAsync<int>((int)status);
+        }
+        public static async Task UpdateGroupBlockingTimeAsync(string groupId, DateTime dateTime)
+        {
+            await firebaseDatabase
+              .Child("Groups")
+              .Child(groupId)
+              .Child("BlockingTime")
+              .PutAsync<string>(dateTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffK"));
         }
     }
 }

@@ -20,6 +20,15 @@ namespace backend.Controllers
             var sortAdmin = sortModerator?.OrderByDescending(user=>user.Role == Role.Admin);
             return Ok(sortAdmin);
         }
+        [HttpGet("GetGroups")]
+        public async Task<ActionResult> GetGroups()
+        {
+            var resultValidate = await AdminService.ValidationAdmin(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            var result = await GroupService.GetGroupsAsync();
+            return Ok(result);
+        }
         [HttpGet("GetAllActivity")]
         public async Task<ActionResult> GetAllActivity()
         {
@@ -75,6 +84,26 @@ namespace backend.Controllers
             if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
 
             await UserService.UpdateUserBlockingTimeAsync(request.UserId, DateTime.Parse(request.BlockingTime).ToUniversalTime());
+            return Ok("Ok");
+        }
+        [HttpPost("UpdateGroupStatus")]
+        public async Task<ActionResult> UpdateGroupStatus(Request request)
+        {
+            if (request.Status == null || string.IsNullOrEmpty(request.GroupId)) return BadRequest("Data is null or empty");
+            var resultValidate = await AdminService.ValidationAdmin(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await AdminService.UpdateGroupStatusAsync(request.GroupId, (Status)request.Status);
+            return Ok("Ok");
+        }
+        [HttpPost("UpdateGroupBlockingTime")]
+        public async Task<ActionResult> UpdateGroupBlockingTime(Request request)
+        {
+            if (string.IsNullOrEmpty(request.BlockingTime) || string.IsNullOrEmpty(request.GroupId)) return BadRequest("Data is null or empty");
+            var resultValidate = await AdminService.ValidationAdmin(this.HttpContext);
+            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
+
+            await AdminService.UpdateGroupBlockingTimeAsync(request.GroupId, DateTime.Parse(request.BlockingTime).ToUniversalTime());
             return Ok("Ok");
         }
     }
