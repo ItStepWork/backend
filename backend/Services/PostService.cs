@@ -63,7 +63,7 @@ namespace backend.Services
             post.Comments.Add(comment.Id, comment);
 
             await firebaseDatabase
-              .Child("Posts")
+              .Child("Post")
               .Child(userId)
               .Child(postId)
               .PutAsync(post);
@@ -72,7 +72,7 @@ namespace backend.Services
         public async Task LikePostAsync(string senderId, string userId, string postId)
         {
             var post = await firebaseDatabase
-              .Child("Posts")
+              .Child("Post")
               .Child(userId)
               .Child(postId).OnceSingleAsync<Post>();
 
@@ -80,7 +80,7 @@ namespace backend.Services
             else post.Likes.Add(senderId);
 
             await firebaseDatabase
-              .Child("Posts")
+              .Child("Post")
               .Child(userId)
               .Child(postId)
               .PutAsync(post);

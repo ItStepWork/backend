@@ -9,6 +9,5 @@
         public Dictionary<string, Comment> Comments { get; set; } = new();
         public DateTime CreateTime { get; set; }
         public string? ImageUrl { get; internal set; }
-        public string? VideoUrl { get; internal set; }
     }
 }
