@@ -22,11 +22,10 @@ namespace backend.Services
             {
                 Text = model.Text,
                 ImageUrl = model.ImageUrl,
-                VideoUrl = model.VideoUrl,
                 UserId= model.UserId
             };
 
-            var postResponse = await firebaseDatabase.Child("Posts").Child(post.UserId).PostAsync(post);
+            var postResponse = await firebaseDatabase.Child("Post").Child(post.UserId).PostAsync(post);
 
             return postResponse.Key;
         }
@@ -37,20 +36,20 @@ namespace backend.Services
                 Id = model.Id,
             };
 
-            var putResponse = await firebaseDatabase.Child("Posts").PostAsync(Post);
+            var putResponse = await firebaseDatabase.Child("Post").PostAsync(Post);
 
             return putResponse.Key;
         }
         public Post GetPostById(string postId)
         {
-            var post = firebaseDatabase.Child("Posts").Child(postId).OnceSingleAsync<Post>().Result;
+            var post = firebaseDatabase.Child("Post").Child(postId).OnceSingleAsync<Post>().Result;
             return post;
         }
 
         public async Task AddCommentAsync(string senderId, string userId, string postId, string text)
         {
             var post = await firebaseDatabase
-              .Child("Posts")
+              .Child("Post")
               .Child(userId)
               .Child(postId).OnceSingleAsync<Photo>();
 
