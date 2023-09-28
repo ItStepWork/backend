@@ -2,8 +2,6 @@
 using backend.Models.Enums;
 using Firebase.Database;
 using Firebase.Database.Query;
-using Newtonsoft.Json;
-using Org.BouncyCastle.Cms;
 
 namespace backend.Services
 {

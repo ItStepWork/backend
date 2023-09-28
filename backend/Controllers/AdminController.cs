@@ -81,5 +81,17 @@ namespace backend.Controllers
             await AdminService.UpdateGroupBlockingTimeAsync(request.GroupId, DateTime.Parse(request.BlockingTime).ToUniversalTime());
             return Ok("Ok");
         }
+        [HttpGet("GetSupportDialogs")]
+        public async Task<ActionResult> GetSupportDialogs()
+        {
+            var result = await SupportService.GetDialogsAsync();
+            return Ok(result);
+        }
+        [HttpGet("GetSupportMessages")]
+        public async Task<ActionResult> GetSupportMessages(string id)
+        {
+            var result = await SupportService.GetMessagesAsync(id);
+            return Ok(result);
+        }
     }
 }

@@ -24,6 +24,8 @@ namespace backend.Middleware
                     else if (path.Value == "/Admin/GetAllActivity") role = Role.Moderator;
                     else if (path.Value == "/Admin/GetPagesActivity") role = Role.Moderator;
                     else if (path.Value == "/Admin/GetUsersActivity") role = Role.Moderator;
+                    else if (path.Value == "/Admin/GetSupportDialogs") role = Role.Moderator;
+                    else if (path.Value == "/Admin/GetSupportMessages") role = Role.Moderator;
                     else if (path.Value == "/Admin/UpdateUserStatus") role = Role.Admin;
                     else if (path.Value == "/Admin/UpdateUserRole") role = Role.Admin;
                     else if (path.Value == "/Admin/UpdateUserBlockingTime") role = Role.Admin;
@@ -48,7 +50,7 @@ namespace backend.Middleware
                     }
                     else await _next(context);
                 }
-                else if (!path.Value.StartsWith("/Auth/"))
+                else if (!path.Value.StartsWith("/Auth/") && !path.Value.StartsWith("/Support/"))
                 {
                     var (status, response, user) = await ValidationService.ValidationUser(context);
                     if (user == null || string.IsNullOrEmpty(user.Id))
