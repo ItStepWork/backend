@@ -56,5 +56,33 @@ namespace backend.Services
               .Child("BlockingTime")
               .PutAsync<string>(dateTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffK"));
         }
+        public static async Task SendSupportMessageAsync(string senderId, Request request)
+        {
+            Message message = new Message();
+            message.Id = Guid.NewGuid().ToString("N");
+            message.Text = request.Text;
+            message.CreateTime = DateTime.UtcNow;
+            message.SenderId = senderId;
+            message.Status = MessageStatus.Unread;
+
+            if (request.File != null)
+            {
+                string? link = await UserService.SaveFileAsync(request.File, "Support", message.Id);
+                message.Link = link;
+            }
+
+            await firebaseDatabase
+             .Child($"Support/Messages/{request.UserId}/{message.Id}")
+             .PutAsync(message);
+        }
+        public static async Task<IEnumerable<Dialog>?> GetSupportDialogsAsync()
+        {
+            var dialogs = await firebaseDatabase.Child($"Support/Messages")
+                .OnceAsync<IDictionary<string, Message>>();
+
+            var users = await UserService.GetUsersAsync();
+            var result = dialogs.Select(x => new Dialog() { User = users?.FirstOrDefault(u => u.Id == x.Key), LastMessage = x.Object.OrderBy(m=>m.Value.CreateTime).LastOrDefault().Value });
+            return result;
+        }
     }
 }

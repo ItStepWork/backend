@@ -33,16 +33,7 @@ namespace backend.Services
             var result = await firebaseDatabase.Child($"Support/Messages/{userId}")
                 .OnceAsync<Message>();
 
-            return result?.Select(x => x.Object);
-        }
-        public static async Task<IEnumerable<Dialog>?> GetDialogsAsync()
-        {
-            var dialogs = await firebaseDatabase.Child($"Support/Messages")
-                .OnceAsync<IDictionary<string, Message>>();
-
-            var users = await UserService.GetUsersAsync();
-            var result = dialogs.Select(x => new Dialog() { User = users?.FirstOrDefault(u => u.Id == x.Key), LastMessage = x.Object.LastOrDefault().Value });
-            return result;
+            return result?.Select(x => x.Object).OrderBy(m=>m.CreateTime);
         }
     }
 }

@@ -84,7 +84,7 @@ namespace backend.Controllers
         [HttpGet("GetSupportDialogs")]
         public async Task<ActionResult> GetSupportDialogs()
         {
-            var result = await SupportService.GetDialogsAsync();
+            var result = await AdminService.GetSupportDialogsAsync();
             return Ok(result);
         }
         [HttpGet("GetSupportMessages")]
@@ -92,6 +92,17 @@ namespace backend.Controllers
         {
             var result = await SupportService.GetMessagesAsync(id);
             return Ok(result);
+        }
+        [HttpPost("SendSupportMessage")]
+        public async Task<ActionResult> SendSupportMessage([FromForm] Request request)
+        {
+            if (string.IsNullOrEmpty(request.Text) || string.IsNullOrEmpty(request.UserId)) return BadRequest("Data is null or empty");
+
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+
+            await AdminService.SendSupportMessageAsync(userId, request);
+            return Ok("Ok");
         }
     }
 }
