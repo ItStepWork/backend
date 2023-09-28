@@ -1,5 +1,6 @@
 ﻿using backend.Models.Enums;
 using backend.Services;
+using System.Security.Claims;
 using System.Text;
 
 namespace backend.Middleware
@@ -64,6 +65,21 @@ namespace backend.Middleware
                         context.Items["user"] = user;
                         context.Items["userId"] = user.Id;
                         await _next(context);
+                    }
+                }
+                else if (path.Value.StartsWith("/Support/"))
+                {
+                    Claim? claimId = context.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
+                    if (claimId != null && !string.IsNullOrEmpty(claimId.Value))
+                    {
+                        context.Items["userId"] = claimId.Value;
+                        await _next(context);
+                    }
+                    else
+                    {
+                        context.Response.StatusCode = 401;
+                        var buffer = Encoding.UTF8.GetBytes("User not authorize!");
+                        await context.Response.Body.WriteAsync(buffer, 0, buffer.Length);
                     }
                 }
                 else await _next(context);

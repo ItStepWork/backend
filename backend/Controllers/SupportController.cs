@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace backend.Controllers
 {
+    [ApiController]
+    [Route("[controller]")]
     public class SupportController : Controller
     {
         [HttpPost("SendMessage")]
@@ -17,8 +19,8 @@ namespace backend.Controllers
             await SupportService.SendMessageAsync(userId, request);
             return Ok("Ok");
         }
-        [HttpGet("GetSupportMessages")]
-        public async Task<ActionResult> GetSupportMessages()
+        [HttpGet("GetMessages")]
+        public async Task<ActionResult> GetMessages()
         {
             var userId = HttpContext.Items["userId"] as string;
             if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
