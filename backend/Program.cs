@@ -65,4 +65,5 @@ app.UseCors(x => x
         .AllowAnyOrigin()
         .AllowAnyMethod()
         .AllowAnyHeader());
+app.UseMiddleware<ValidationHandlerMiddleware>();
 app.Run();

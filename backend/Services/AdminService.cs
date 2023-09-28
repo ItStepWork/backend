@@ -11,34 +11,6 @@ namespace backend.Services
     {
         private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
 
-        public static async Task<(ActionResult response, User? user)> ValidationAdmin(Controller controller, Role role)
-        {
-            Claim? claimRole = controller.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Role);
-            Claim? claimId = controller.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null || claimRole == null) return (controller.Unauthorized("User not authorize!"), null);
-
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return (controller.Unauthorized("Sender not found!"), null);
-            if (sender.Role.ToString() != claimRole.Value) return (controller.Unauthorized("User role changed"), null);
-
-            if (role == Role.Moderator && sender.Role == Role.User) return (controller.Conflict("User not access!"), null);
-            else if (role == Role.Admin && sender.Role != Role.Admin) return (controller.Conflict("User not access!"), null);
-
-            if (sender.BlockingTime > DateTime.UtcNow)
-            {
-                TimeSpan timeSpan = sender.BlockingTime - DateTime.UtcNow;
-                if (timeSpan < TimeSpan.FromDays(1)) return (controller.Conflict($"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"hh\:mm\:ss")}"), null);
-                else return (controller.Conflict($"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"dd")} days"), null);
-            }
-
-            var remoteIpAddress = controller.HttpContext.Connection.RemoteIpAddress;
-            var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
-                    ? remoteIpAddress.MapToIPv4().ToString()
-                    : remoteIpAddress?.ToString();
-            if (!string.IsNullOrEmpty(ipAddress) && ipAddress != "127.0.0.1" && ipAddress != "0.0.0.1") await UserService.UpdateUserIpAddressAsync(claimId.Value, ipAddress);
-            await UserService.UpdateUserLastVisitAsync(claimId.Value);
-            return (controller.Ok("Ok"), sender);
-        }
         public static async Task<ChartActivity> GetPagesActivityAsync(Chart chart)
         {
             var result = await ActivityService.GetAllActivityAsync();

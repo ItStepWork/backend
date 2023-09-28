@@ -37,50 +37,6 @@ namespace backend.Services
             var tokenString = new JwtSecurityTokenHandler().WriteToken(tokeOptions);
             return new Response(user.Object, tokenString);
         }
-        public static async Task<(ActionResult response, User? user)> ValidationUser(Controller controller)
-        {
-            Claim? claimId = controller.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return (controller.Unauthorized("User not authorize!"), null);
-
-            User? sender = await FindUserByIdAsync(claimId.Value);
-            if (sender == null) return (controller.Unauthorized("Sender not found!"), null);
-
-            if (sender.BlockingTime > DateTime.UtcNow)
-            {
-                TimeSpan timeSpan = sender.BlockingTime - DateTime.UtcNow;
-                if (timeSpan < TimeSpan.FromDays(1)) return (controller.Conflict($"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"hh\:mm\:ss")}"), null);
-                else return (controller.Conflict($"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"dd")} days"), null);
-            }
-
-            var remoteIpAddress = controller.HttpContext.Connection.RemoteIpAddress;
-            var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
-                    ? remoteIpAddress.MapToIPv4().ToString()
-                    : remoteIpAddress?.ToString();
-            if (!string.IsNullOrEmpty(ipAddress) && ipAddress != "127.0.0.1" && ipAddress != "0.0.0.1") await UpdateUserIpAddressAsync(claimId.Value, ipAddress);
-            await UpdateUserLastVisitAsync(claimId.Value);
-
-            var path = controller.HttpContext.Request.Path;
-            if (path.HasValue)
-            {
-                Page? page = null;
-                if (path.Value.StartsWith("/Friend/")) page = Page.Contacts;
-                else if (path.Value.StartsWith("/Messaging/")) page = Page.Messaging;
-                else if (path.Value.StartsWith("/Gallery/")) page = Page.Gallery;
-                else if (path.Value.StartsWith("/Notification/")) page = Page.Notifications;
-                else if (path.Value.StartsWith("/Group/")) page = Page.Groups;
-                else if (path.Value.StartsWith("/Auth/")) page = Page.Authorization;
-                if (page != null)
-                {
-                    Activity activity = new();
-                    activity.Page = page;
-                    activity.UserId = sender.Id;
-                    activity.DateTime = DateTime.UtcNow;
-                    await ActivityService.AddActivityAsync(activity);
-                }
-            }
-
-            return (controller.Ok("Ok"), sender);
-        }
         public static async Task<FirebaseObject<User>> AddUserAsync(User user)
         {
             return await firebaseDatabase

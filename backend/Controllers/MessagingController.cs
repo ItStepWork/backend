@@ -12,14 +12,14 @@ namespace backend.Controllers
         public async Task<ActionResult> SendMessage([FromForm] Request request)
         {
             if (string.IsNullOrEmpty(request.Text) || string.IsNullOrEmpty(request.Id)) return BadRequest("Data is null or empty");
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
-            if (resultValidate.user.Id == request.Id) return Conflict("Trying to send a message to yourself");
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+            if (userId == request.Id) return Conflict("Trying to send a message to yourself");
 
             User? recipient = await UserService.FindUserByIdAsync(request.Id);
             if (recipient == null) return NotFound("Recipient not found!");
 
-            Message? message = await MessagingService.SendMessageAsync(resultValidate.user.Id, request);
+            Message? message = await MessagingService.SendMessageAsync(userId, request);
             if (message == null || message.Id == null) return Conflict("Send message failed");
 
             return Ok("Ok");
@@ -27,49 +27,49 @@ namespace backend.Controllers
         [HttpGet("GetDialogs")]
         public async Task<ActionResult> GetDialogs()
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            var result = await MessagingService.GetDialogs(resultValidate.user.Id);
+            var result = await MessagingService.GetDialogs(userId);
             return Ok(result);
         }
         [HttpDelete("RemoveDialog")]
         public async Task<ActionResult> RemoveDialog(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            await MessagingService.RemoveDialogAsync(resultValidate.user.Id, id);
+            await MessagingService.RemoveDialogAsync(userId, id);
             return Ok("Ok");
         }
         [HttpDelete("RemoveMessageFull")]
         public async Task<ActionResult> RemoveMessageFull(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            await MessagingService.RemoveMessageAsync(resultValidate.user.Id, id, true);
+            await MessagingService.RemoveMessageAsync(userId, id, true);
             return Ok("Ok");
         }
         [HttpDelete("RemoveMessage")]
         public async Task<ActionResult> RemoveMessage(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            await MessagingService.RemoveMessageAsync(resultValidate.user.Id, id, false);
+            await MessagingService.RemoveMessageAsync(userId, id, false);
             return Ok("Ok");
         }
         [HttpGet("GetMessages")]
         public async Task<ActionResult> GetMessages(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
             User? recipient = await UserService.FindUserByIdAsync(id);
             if (recipient == null) return NotFound("Recipient not found!");
 
-            var result = await MessagingService.GetMessages(resultValidate.user.Id, id);
+            var result = await MessagingService.GetMessages(userId, id);
             return Ok(result);
         }
     }

@@ -12,38 +12,34 @@ namespace backend.Controllers
         [HttpGet("GetUser")]
         public async Task<ActionResult> GetUser(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
-
             var user = await UserService.GetUserAsync(id);
             return Ok(user);
         }
         [HttpGet("GetCurrentUser")]
         public async Task<ActionResult> GetCurrentUser()
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            var user = await UserService.GetUserAsync(resultValidate.user.Id);
+            var user = await UserService.GetUserAsync(userId);
             return Ok(user);
         }
         [HttpGet("GetUsers")]
         public async Task<ActionResult> GetUsers()
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            IEnumerable<UserBase>? users = await UserService.GetUsersAsync(resultValidate.user.Id);
+            IEnumerable<UserBase>? users = await UserService.GetUsersAsync(userId);
             return Ok(users);
         }
         
         [HttpPost("UpdateUser")]
         public async Task<ActionResult> UpdateUser(User data)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var user = HttpContext.Items["user"] as User;
+            if (user == null || string.IsNullOrEmpty(user.Id)) return Conflict("User or ID is null");
 
-            User user = resultValidate.user;
 
             // Check email
             if(string.IsNullOrEmpty(data.Email)) return BadRequest("Email null or empty");
@@ -74,7 +70,7 @@ namespace backend.Controllers
             user.AboutMe = data.AboutMe;
             user.Location = data.Location;
             user.Work = data.Work;
-            await UserService.UpdateUserAsync(resultValidate.user.Id, user);
+            await UserService.UpdateUserAsync(user.Id, user);
             return Ok("User is Updated");
         }
 
@@ -82,16 +78,15 @@ namespace backend.Controllers
         public async Task<ActionResult> UpdateUserPassword(Request request)
         {
             if (string.IsNullOrEmpty(request.OldPassword) || string.IsNullOrEmpty(request.NewPassword)) return BadRequest("Data is null or empty");
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
 
-            User user = resultValidate.user;
+            var user = HttpContext.Items["user"] as User;
+            if (user == null || string.IsNullOrEmpty(user.Id)) return Conflict("User or ID is null");
 
             // Update user
             if (request.NewPassword.Length < 6) return BadRequest("Password less than 6 characters!");
             if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.Password)) return Conflict("Passwords are not the same!");
 
-            await UserService.UpdateUserPasswordAsync(resultValidate.user.Id, BCrypt.Net.BCrypt.HashPassword(request.NewPassword));
+            await UserService.UpdateUserPasswordAsync(user.Id, BCrypt.Net.BCrypt.HashPassword(request.NewPassword));
 
             string[] mailDescription = { "Восстановление пароля в", "Ваш пароль был успешно заменен", "Ваши данные при регистрации:" };
             await EmailService.SendEmailAsync(user.Email, "Смена пароля на Connections", user.FirstName, user.LastName, user.Joined, request.NewPassword, mailDescription);
@@ -102,10 +97,10 @@ namespace backend.Controllers
         [HttpPost("SaveAvatar")]
         public async Task<ActionResult> SaveAvatar(IFormFile file)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            var photo = await GalleryService.AddPhotoAsync(resultValidate.user.Id);
+            var photo = await GalleryService.AddPhotoAsync(userId);
 
             var url = await UserService.SaveFileAsync(file, "Photos", photo.Key);
             if (url == null) return Conflict("Save avatar failed");
@@ -114,19 +109,18 @@ namespace backend.Controllers
             result.Id = photo.Key;
             result.Url = url;
 
-            await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, photo.Key, result);
+            await GalleryService.UpdatePhotoAsync(userId, photo.Key, result);
 
-            await UserService.UpdateUserAvatarUrlAsync(resultValidate.user.Id, url);
-
-            return Ok(resultValidate.user);
+            await UserService.UpdateUserAvatarUrlAsync(userId, url);
+            return Ok("Ok");
         }
         [HttpPost("SaveBackground")]
         public async Task<ActionResult> SaveBackground(IFormFile file)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) return resultValidate.response;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            var photo = await GalleryService.AddPhotoAsync(resultValidate.user.Id);
+            var photo = await GalleryService.AddPhotoAsync(userId);
 
             var url = await UserService.SaveFileAsync(file, "Photos", photo.Key);
             if (url == null) return Conflict("Save background failed");
@@ -135,11 +129,10 @@ namespace backend.Controllers
             result.Id = photo.Key;
             result.Url = url;
 
-            await GalleryService.UpdatePhotoAsync(resultValidate.user.Id, photo.Key, result);
+            await GalleryService.UpdatePhotoAsync(userId, photo.Key, result);
 
-            await UserService.UpdateUserBackgroundUrlAsync(resultValidate.user.Id, url);
-
-            return Ok(resultValidate.user);
+            await UserService.UpdateUserBackgroundUrlAsync(userId, url);
+            return Ok("Ok");
         }
     }
 }

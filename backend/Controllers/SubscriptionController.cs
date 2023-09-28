@@ -13,93 +13,78 @@ namespace backend.Controllers
         [HttpGet("SubscribeToMessages")]
         public async Task SubscribeToMessages()
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) HttpContext.Response.StatusCode = 400;
             else
             {
-                await SubscriptionService.SubscribeToMessagesAsync(this.HttpContext, "Messages", resultValidate.user.Id);
+                await SubscriptionService.SubscribeToMessagesAsync(this.HttpContext, "Messages", userId);
             }
         }
         [Authorize]
         [HttpGet("SubscribeToUserUpdates")]
         public async Task SubscribeToUserUpdates(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
-            else
-            {
-                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Users/{id}", "Update user");
-            }
+            await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Users/{id}", "Update user");
         }
         [Authorize]
         [HttpGet("SubscribeToMessagesUpdates")]
         public async Task SubscribeToMessagesUpdates()
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) HttpContext.Response.StatusCode = 400;
             else
             {
-                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Messages/{resultValidate.user.Id}", "Update messages");
+                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Messages/{userId}", "Update messages");
             }
         }
         [Authorize]
         [HttpGet("SubscribeToGroupsUpdates")]
         public async Task SubscribeToGroupsUpdates()
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
-            else
-            {
-                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, "Groups", "Update groups");
-            }
+            await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, "Groups", "Update groups");
         }
         [Authorize]
         [HttpGet("SubscribeToGroupUpdates")]
         public async Task SubscribeToGroupUpdates(string id)
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
+            Group? group = await GroupService.GetGroupAsync(id);
+            if (group == null) HttpContext.Response.StatusCode = 400;
             else
             {
-                Group? group = await GroupService.GetGroupAsync(id);
-                if(group == null) HttpContext.Response.StatusCode = 400;
-                else
-                {
-                    await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Groups/{id}", "Update group");
-                }
+                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Groups/{id}", "Update group");
             }
         }
         [Authorize]
         [HttpGet("SubscribeToFriendRequest")]
         public async Task SubscribeToFriendRequest()
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) HttpContext.Response.StatusCode = 400;
             else
             {
-                await SubscriptionService.SubscribeToNotificationAsync(this.HttpContext, resultValidate.user.Id, Models.Enums.NotificationType.AddFriend, "Запрос в друзья");
+                await SubscriptionService.SubscribeToNotificationAsync(this.HttpContext, userId, Models.Enums.NotificationType.AddFriend, "Запрос в друзья");
             }
         }
         [Authorize]
         [HttpGet("SubscribeToFriendsUpdates")]
         public async Task SubscribeToFriendsUpdates()
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) HttpContext.Response.StatusCode = 400;
             else
             {
-                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Friends/{resultValidate.user.Id}", "Update friends");
+                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Friends/{userId}", "Update friends");
             }
         }
         [Authorize]
         [HttpGet("SubscribeToNotificationUpdates")]
         public async Task SubscribeToNotificationUpdates()
         {
-            var resultValidate = await UserService.ValidationUser(this);
-            if (resultValidate.user == null || resultValidate.user.Id == null) HttpContext.Response.StatusCode = 400;
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) HttpContext.Response.StatusCode = 400;
             else
             {
-                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Notifications/{resultValidate.user.Id}", "Update notifications");
+                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Notifications/{userId}", "Update notifications");
             }
         }
     }
