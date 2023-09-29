@@ -35,5 +35,26 @@ namespace backend.Services
 
             return result?.Select(x => x.Object).OrderBy(m=>m.CreateTime);
         }
+        public static async Task SendComplaintAsync(string senderId, Request request)
+        {
+            Complaint complaint = new Complaint();
+            complaint.Id = Guid.NewGuid().ToString("N");
+            complaint.Text = request.Text;
+            complaint.CreateTime = DateTime.UtcNow;
+            complaint.SenderId = senderId;
+            complaint.Status = MessageStatus.Unread;
+            complaint.UserId = request.UserId;
+            complaint.PhotoId = request.PhotoId;
+
+            if (request.File != null)
+            {
+                string? link = await UserService.SaveFileAsync(request.File, "Complaints", complaint.Id);
+                complaint.Link = link;
+            }
+
+            await firebaseDatabase
+             .Child($"Complaints/{complaint.Id}")
+             .PutAsync(complaint);
+        }
     }
 }

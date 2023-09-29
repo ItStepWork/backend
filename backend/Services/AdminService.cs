@@ -84,5 +84,12 @@ namespace backend.Services
             var result = dialogs.Select(x => new Dialog() { User = users?.FirstOrDefault(u => u.Id == x.Key), LastMessage = x.Object.OrderBy(m=>m.Value.CreateTime).LastOrDefault().Value });
             return result;
         }
+        public static async Task<IEnumerable<Complaint>?> GetComplaintsAsync()
+        {
+            var result = await firebaseDatabase.Child($"Complaints")
+                .OnceAsync<Complaint>();
+
+            return result?.Select(x => x.Object).OrderBy(m => m.CreateTime);
+        }
     }
 }

@@ -28,6 +28,7 @@ namespace backend.Middleware
                     else if (path.Value == "/Admin/GetSupportDialogs") role = Role.Moderator;
                     else if (path.Value == "/Admin/GetSupportMessages") role = Role.Moderator;
                     else if (path.Value == "/Admin/SendSupportMessage") role = Role.Moderator;
+                    else if (path.Value == "/Admin/GetComplaints") role = Role.Moderator;
                     else if (path.Value == "/Admin/UpdateUserStatus") role = Role.Admin;
                     else if (path.Value == "/Admin/UpdateUserRole") role = Role.Admin;
                     else if (path.Value == "/Admin/UpdateUserBlockingTime") role = Role.Admin;

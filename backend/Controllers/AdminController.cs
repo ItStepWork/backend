@@ -104,5 +104,11 @@ namespace backend.Controllers
             await AdminService.SendSupportMessageAsync(userId, request);
             return Ok("Ok");
         }
+        [HttpGet("GetComplaints")]
+        public async Task<ActionResult> GetComplaints()
+        {
+            var result = await AdminService.GetComplaintsAsync();
+            return Ok(result);
+        }
     }
 }
