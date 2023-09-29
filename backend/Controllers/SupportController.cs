@@ -36,7 +36,7 @@ namespace backend.Controllers
             var userId = HttpContext.Items["userId"] as string;
             if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            await SupportService.SendMessageAsync(userId, request);
+            await SupportService.SendComplaintAsync(userId, request);
             return Ok("Ok");
         }
     }
