@@ -2,6 +2,8 @@
 using backend.Models.Enums;
 using Firebase.Database;
 using Firebase.Database.Query;
+using MimeKit;
+using Org.BouncyCastle.Cms;
 
 namespace backend.Services
 {
@@ -32,23 +34,21 @@ namespace backend.Services
         }
         public static async Task<IEnumerable<Message>> GetMessages(string userId, string friendId)
         {
-            var dialogs = await firebaseDatabase.Child($"Messages/{userId}/{friendId}")
+            var messages = await firebaseDatabase.Child($"Messages/{userId}/{friendId}")
                 .OnceAsync<Message>();
 
-            var result = dialogs.Select(x => x.Object);
-
-            var unread = dialogs.Where(x => x.Object.Status == MessageStatus.Unread && x.Object.SenderId != userId);
-            if (unread?.Count() > 0)
-            {
-                foreach (var message in unread)
-                {
-                    message.Object.Status = MessageStatus.Read;
-                    await UpdateMessageAsync(userId, friendId, message.Key, message.Object);
-                    await UpdateMessageAsync(friendId, userId, message.Key, message.Object);
-                }
-            }
+            var result = messages.Select(x => x.Object).OrderByDescending(m=>m.CreateTime);
 
             return result;
+        }
+        public static async Task UpdateMessageStatusAsync(string senderId, string friendId, string messageId)
+        {
+            await firebaseDatabase
+            .Child($"Messages/{senderId}/{friendId}/{messageId}/Status")
+             .PutAsync<int>((int)MessageStatus.Read);
+            await firebaseDatabase
+            .Child($"Messages/{friendId}/{senderId}/{messageId}/Status")
+             .PutAsync<int>((int)MessageStatus.Read);
         }
         public static async Task<Message?> SendMessageAsync(string senderId, Request data)
         {

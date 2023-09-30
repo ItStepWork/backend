@@ -72,5 +72,16 @@ namespace backend.Controllers
             var result = await MessagingService.GetMessages(userId, id);
             return Ok(result);
         }
+        [HttpPost("UpdateMessageStatus")]
+        public async Task<ActionResult> UpdateMessageStatus(Request request)
+        {
+            if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.Id)) return BadRequest("Data is null or empty");
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+            if (userId == request.UserId) BadRequest("Update message status failed");
+
+            await MessagingService.UpdateMessageStatusAsync(userId, request.UserId, request.Id);
+            return Ok("Ok");
+        }
     }
 }
