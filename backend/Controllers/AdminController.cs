@@ -110,5 +110,12 @@ namespace backend.Controllers
             var result = await AdminService.GetComplaintsAsync();
             return Ok(result);
         }
+        [HttpPost("UpdateComplaintStatus")]
+        public async Task<ActionResult> UpdateComplaintStatus(Request request)
+        {
+            if (string.IsNullOrEmpty(request.Id)) return BadRequest("Id is null or empty");
+            await AdminService.UpdateComplaintStatusAsync(request.Id);
+            return Ok("Ok");
+        }
     }
 }

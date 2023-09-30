@@ -89,7 +89,20 @@ namespace backend.Services
             var result = await firebaseDatabase.Child($"Complaints")
                 .OnceAsync<Complaint>();
 
-            return result?.Select(x => x.Object).OrderBy(m => m.CreateTime);
+            var users = await UserService.GetUsersAsync();
+            return result?.Select(x => x.Object).OrderByDescending(m => m.CreateTime).Select(c => { 
+                c.Sender = users?.FirstOrDefault(u => u.Id == c.SenderId);
+                c.User = users?.FirstOrDefault(u => u.Id == c.UserId);
+                return c;
+            });
+        }
+        public static async Task UpdateComplaintStatusAsync(string id)
+        {
+            await firebaseDatabase
+              .Child("Complaints")
+              .Child(id)
+              .Child("Status")
+              .PutAsync<int>((int)MessageStatus.Read);
         }
     }
 }

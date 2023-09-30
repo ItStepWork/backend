@@ -45,6 +45,7 @@ namespace backend.Services
             complaint.Status = MessageStatus.Unread;
             complaint.UserId = request.UserId;
             complaint.PhotoId = request.PhotoId;
+            complaint.PhotoUrl = request.PhotoUrl;
 
             if (request.File != null)
             {
