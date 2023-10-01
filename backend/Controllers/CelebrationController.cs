@@ -11,7 +11,6 @@ namespace backend.Controllers
         [HttpPost("AddEvent")]
         public async Task<ActionResult> AddEvent(Request request)
         {
-            await Console.Out.WriteLineAsync(request.Date.ToString());
             if (request == null ) return BadRequest("Audience or File is null");
             var userId = HttpContext.Items["userId"] as string;
             if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
@@ -19,15 +18,19 @@ namespace backend.Controllers
             return Ok("Added");
         }
         [HttpGet("GetBirthdaysNow")]
-        public async Task<ActionResult> GetBirthdaysNow(string id)
+        public async Task<ActionResult> GetBirthdaysNow()
         {
-            var result = await CelebrationService.GetBirthdaysEventNowAsync(id);
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+            var result = await CelebrationService.GetBirthdaysEventNowAsync(userId);
             return Ok(result);
         }
         [HttpGet("GetBirthdaysSoon")]
-        public async Task<ActionResult> GetBirthdaysSoon(string id)
+        public async Task<ActionResult> GetBirthdaysSoon()
         {
-            var result = await CelebrationService.GetBirthdaysEventSoonAsync(id);
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+            var result = await CelebrationService.GetBirthdaysEventSoonAsync(userId);
             return Ok(result);
         }
     }
