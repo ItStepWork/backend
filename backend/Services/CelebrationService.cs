@@ -1,7 +1,9 @@
 ﻿using backend.Models;
 using backend.Models.Enums;
 using Firebase.Database;
+using Firebase.Database.Query;
 using Firebase.Storage;
+using System.Runtime.CompilerServices;
 
 namespace backend.Services
 {
@@ -9,6 +11,34 @@ namespace backend.Services
     {
         private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
         private static readonly FirebaseStorage firebaseStorage = new FirebaseStorage("database-50f39.appspot.com");
+
+        public static async Task AddEventAsync(Request request, string userId)
+        {
+            Event newEvent = new Event() {
+                Date = DateTime.Parse(request.Date).ToUniversalTime(),
+                Name = request.Name,
+                UserId = userId, 
+                Type = request.EventType,
+                Id = Guid.NewGuid().ToString("N") 
+            };
+            await firebaseDatabase
+              .Child("Events")
+              .Child(userId)
+              .Child(newEvent.Id)
+              .PutAsync(newEvent);
+            //if (result == null) return ("Event not added", "");
+            //newEvent.Id = result.Key;
+            //await UpdateEventAsync(newEvent, userId);
+        }
+        public static async Task UpdateEventAsync(Event _event)
+        {
+            await firebaseDatabase
+              .Child("Events")
+              .Child(_event.UserId)
+              .Child(_event.Id)
+              .PutAsync(_event);
+        }
+
         public static async Task<IEnumerable<Event?>?> GetBirthdaysEventNowAsync(string userId)
         {
             var result = await firebaseDatabase
@@ -22,7 +52,7 @@ namespace backend.Services
                 if(allUsers != null) 
                 {
                     var friends = allUsers.Where(item => friendsConfirm.Contains(item.Id));
-                    var friendsBirthday = friends.Where(item => item.BirthDay.Month == DateTime.Now.Month && item.BirthDay.Day == DateTime.Now.Day).Select(item=> new Event() {User = item,EventType = EventType.BirthDay});
+                    var friendsBirthday = friends.Where(item => item.BirthDay.Month == DateTime.Now.Month && item.BirthDay.Day == DateTime.Now.Day).Select(item=> new Event() {User = item,Type = EventType.BirthDay});
                     if(friendsBirthday != null) return friendsBirthday;
                 }
             }
@@ -42,11 +72,25 @@ namespace backend.Services
                 if (allUsers != null)
                 {
                     var friends = allUsers.Where(item => friendsConfirm.Contains(item.Id));
-                    var friendsBirthday = friends.Where(item => (item.BirthDay.Month == DateTime.Now.Month && item.BirthDay.Day > DateTime.Now.Day) || item.BirthDay.Month == DateTime.Now.Month + 1).Select(item => new Event() { User = item, EventType = EventType.BirthDay });
+                    var friendsBirthday = friends.Where(item => (item.BirthDay.Month == DateTime.Now.Month && item.BirthDay.Day > DateTime.Now.Day) || item.BirthDay.Month == DateTime.Now.Month + 1)
+                        .Select(item => new Event() 
+                        { 
+                            User = item,
+                            Type = EventType.BirthDay,
+                            Date = GetDate(item.BirthDay),
+                            
+                            
+                        });
                     if (friendsBirthday != null) return friendsBirthday;
                 }
             }
             return new Event[] { };
+        }
+        public static DateTime GetDate(DateTime date)
+        {
+            var result = date;
+            result = result.AddYears(DateTime.Now.Year - date.Year);
+            return result;
         }
     }
 }
