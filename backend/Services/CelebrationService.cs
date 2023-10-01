@@ -3,6 +3,8 @@ using backend.Models.Enums;
 using Firebase.Database;
 using Firebase.Database.Query;
 using Firebase.Storage;
+using MimeKit;
+using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 
 namespace backend.Services
@@ -86,6 +88,30 @@ namespace backend.Services
             }
             return new Event[] { };
         }
+
+        public static async Task<IEnumerable<Event?>?> GetAllEventsAsync()
+        {
+            var events = await firebaseDatabase
+             .Child("Events")
+             .OnceAsync<Dictionary<string,Event>>();
+            var result = events.Select(e => e.Object).SelectMany(e => e.Values.ToList());
+            return result;
+        }
+
+        public static async Task<IEnumerable<Event?>?> GetEventsAsync(string userId)
+        {
+            var events = await GetAllEventsAsync();
+
+            var result = await firebaseDatabase
+                .Child($"Friends/{userId}")
+                .OnceAsync<FriendRequest>();
+            var friends = await FriendService.GetConfirmedFriends(userId, userId);
+            var friendIds = friends.Select(x => x.Id);
+            var myFriendsEvents = events.Where(item => friendIds.Contains(item.UserId)).OrderBy(x => x.Date);
+            var final = myFriendsEvents.Select(x => { x.User = friends.FirstOrDefault(i => i.Id == x.UserId); return x; });
+            return final;
+        }
+
         public static DateTime GetDate(DateTime date)
         {
             var result = date;

@@ -33,5 +33,13 @@ namespace backend.Controllers
             var result = await CelebrationService.GetBirthdaysEventSoonAsync(userId);
             return Ok(result);
         }
+        [HttpGet("GetEvents")]
+        public async Task<ActionResult> GetEvents()
+        {
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+            var result = await CelebrationService.GetEventsAsync(userId);
+            return Ok(result);
+        }
     }
 }
