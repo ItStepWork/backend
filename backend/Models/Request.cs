@@ -23,5 +23,7 @@ namespace backend.Models
         public string? OldPassword { get; set; }
         public string? NewPassword { get; set; }
         public string? BlockingTime { get; set; }
+        public EventType? EventType { get; set; }
+        public string? Date { get; set; }
     }
 }
