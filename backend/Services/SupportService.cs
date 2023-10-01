@@ -46,6 +46,7 @@ namespace backend.Services
             complaint.UserId = request.UserId;
             complaint.PhotoId = request.PhotoId;
             complaint.PhotoUrl = request.PhotoUrl;
+            complaint.GroupId = request.GroupId;
 
             if (request.File != null)
             {

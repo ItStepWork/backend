@@ -90,9 +90,11 @@ namespace backend.Services
                 .OnceAsync<Complaint>();
 
             var users = await UserService.GetUsersAsync();
+            var groups = await GroupService.GetGroupsAsync();
             return result?.Select(x => x.Object).OrderByDescending(m => m.CreateTime).Select(c => { 
                 c.Sender = users?.FirstOrDefault(u => u.Id == c.SenderId);
                 c.User = users?.FirstOrDefault(u => u.Id == c.UserId);
+                c.Group = groups?.FirstOrDefault(u => u.Id == c.GroupId);
                 return c;
             });
         }
