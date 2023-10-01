@@ -13,12 +13,7 @@ namespace backend.Services
 
             User? sender = await UserService.FindUserByIdAsync(claimId.Value);
             if (sender == null) return (401, "Sender not found!", null);
-            if (sender.BlockingTime > DateTime.UtcNow)
-            {
-                TimeSpan timeSpan = sender.BlockingTime - DateTime.UtcNow;
-                if (timeSpan < TimeSpan.FromDays(1)) return (409, $"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"hh\:mm\:ss")}", null);
-                else return (409, $"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"dd")} days", null);
-            }
+            if (sender.BlockingTime > DateTime.UtcNow) return (409, General.GetBlockingTime(sender.BlockingTime), null);
 
             var remoteIpAddress = httpContext.Connection.RemoteIpAddress;
             var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6
@@ -62,12 +57,7 @@ namespace backend.Services
             if (role == Role.Moderator && sender.Role == Role.User) return (409, "User not access!", null);
             else if (role == Role.Admin && sender.Role != Role.Admin) return (409, "User not access!", null);
 
-            if (sender.BlockingTime > DateTime.UtcNow)
-            {
-                TimeSpan timeSpan = sender.BlockingTime - DateTime.UtcNow;
-                if (timeSpan < TimeSpan.FromDays(1)) return (409, $"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"hh\:mm\:ss")}", null);
-                else return (409, $"User blocked for {(sender.BlockingTime - DateTime.UtcNow).ToString(@"dd")} days", null);
-            }
+            if (sender.BlockingTime > DateTime.UtcNow) return (409, General.GetBlockingTime(sender.BlockingTime), null);
 
             var remoteIpAddress = httpContext.Connection.RemoteIpAddress;
             var ipAddress = remoteIpAddress?.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6

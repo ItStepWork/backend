@@ -89,6 +89,8 @@ namespace backend.Controllers
         {
             var group = await GroupService.GetGroupAsync(id);
             if (group == null) return NotFound("Group not found");
+            if (group.BlockingTime > DateTime.UtcNow) return Conflict(General.GetBlockingTime(group.BlockingTime));
+            if (group.Status == Status.Deleted) return Conflict("Group is deleted");
             return Ok(group);
         }
         [HttpPost("JoinGroup")]
