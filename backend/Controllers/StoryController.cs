@@ -55,5 +55,31 @@ namespace backend.Controllers
             await StoryService.UpdatStoryAsync(userId, story.Key, story.Object);
             return Ok("Ok");
         }
+
+        [HttpDelete("DeleteStory")]
+        public async Task<ActionResult> DeleteStory(string id)
+        {
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+
+            await StoryService.RemoveStoryAsync(userId, id);
+            return Ok("Ok");
+        }
+
+        [HttpDelete("DeleteStoryAndPhotos")]
+        public async Task<ActionResult> DeleteStoryAndPhotos(string id)
+        {
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+
+            var result = await GalleryService.GetStoryPhotosAsync(userId, id);
+            if (result == null || result.Count() == 0) return NotFound("Photos not found");
+            foreach (var photo in result)
+            {
+                await GalleryService.RemovePhotoAsync(userId, photo.Id);
+            }
+            await StoryService.RemoveStoryAsync(userId, id);
+            return Ok("Ok");
+        }
     }
 }
