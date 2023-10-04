@@ -1,6 +1,7 @@
 ﻿using Firebase.Database;
 using Firebase.Database.Query;
 using backend.Models;
+using Newtonsoft.Json;
 
 namespace backend.Services
 {
@@ -15,6 +16,14 @@ namespace backend.Services
 
             return result?.Select(x => x.Object);
         }
+        public static async Task<Post?> GetPostAsync(string userId, string postId)
+        {
+            var result = await firebaseDatabase
+              .Child($"Posts/{userId}/{postId}")
+              .OnceAsJsonAsync();
+
+            return JsonConvert.DeserializeObject<Post>(result);
+        }
         public static async Task CreatePostAsync(string senderId, Request request)
         {
             var post = new Post
@@ -24,7 +33,6 @@ namespace backend.Services
                 SenderId = senderId,
                 RecipientId = request.RecipientId,
                 CreateTime = DateTime.UtcNow,
-                Access = request.Access,
             };
 
             if (request.File != null)
@@ -33,7 +41,7 @@ namespace backend.Services
                 post.ImgUrl = imgUrl;
             }
 
-            await firebaseDatabase.Child("Posts").Child(post.RecipientId).PutAsync(post);
+            await firebaseDatabase.Child("Posts").Child(post.RecipientId).Child(post.Id).PutAsync(post);
         }
         public static async Task SendCommentAsync(string senderId, Request request)
         {
@@ -74,6 +82,14 @@ namespace backend.Services
               .Child(request.RecipientId)
               .Child(request.Id)
               .PutAsync(post);
+        }
+        public static async Task RemovePostAsync(string senderId, string postId)
+        {
+            await firebaseDatabase
+              .Child("Posts")
+              .Child(senderId)
+              .Child(postId)
+              .DeleteAsync();
         }
     }
 }
