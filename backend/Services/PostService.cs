@@ -24,6 +24,7 @@ namespace backend.Services
                 SenderId = senderId,
                 RecipientId = request.RecipientId,
                 CreateTime = DateTime.UtcNow,
+                Access = request.Access,
             };
 
             if (request.File != null)

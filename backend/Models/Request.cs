@@ -26,5 +26,6 @@ namespace backend.Models
         public string? BlockingTime { get; set; }
         public EventType? EventType { get; set; }
         public string? Date { get; set; }
+        public Access? Access { get; set; }
     }
 }
