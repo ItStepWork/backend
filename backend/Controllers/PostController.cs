@@ -11,9 +11,9 @@ namespace backend.Controllers
     {
         [Authorize]
         [HttpGet("GetPosts")]
-        public async Task<ActionResult> GetPosts(string userId)
+        public async Task<ActionResult> GetPosts(string id)
         {
-            var result = await PostService.GetPostsAsync(userId);
+            var result = await PostService.GetPostsAsync(id);
             return Ok(result);
         }
 
