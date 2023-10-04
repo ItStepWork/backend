@@ -1,87 +1,77 @@
 ﻿using Firebase.Database;
 using Firebase.Database.Query;
 using backend.Models;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace backend.Services
 {
-    public class PostService
+    public static class PostService
     {
         private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
-        public static async Task<IEnumerable<Post>?> GetPostAsync(string userId)
+        public static async Task<IEnumerable<Post>?> GetPostsAsync(string userId)
         {
-            var users = await firebaseDatabase
-              .Child($"Post/{userId}")
+            var result = await firebaseDatabase
+              .Child($"Posts/{userId}")
               .OnceAsync<Post>();
 
-            return users?.Select(x => x.Object);
+            return result?.Select(x => x.Object);
         }
-        public async Task<string> CreatePostAsync(Post model)
+        public static async Task CreatePostAsync(string senderId, Request request)
         {
             var post = new Post
             {
-                Text = model.Text,
-                ImageUrl = model.ImageUrl,
-                UserId= model.UserId
+                Id = Guid.NewGuid().ToString("N"),
+                Text = request.Text,
+                SenderId = senderId,
+                RecipientId = request.RecipientId,
+                CreateTime = DateTime.UtcNow,
             };
 
-            var postResponse = await firebaseDatabase.Child("Post").Child(post.UserId).PostAsync(post);
-
-            return postResponse.Key;
-        }
-        public async Task<string> CreatePutAsync(Post model)
-        {
-            var Post = new Post
+            if (request.File != null)
             {
-                Id = model.Id,
-            };
+                string? imgUrl = await UserService.SaveFileAsync(request.File, "Posts", post.Id);
+                post.ImgUrl = imgUrl;
+            }
 
-            var putResponse = await firebaseDatabase.Child("Post").PostAsync(Post);
-
-            return putResponse.Key;
+            await firebaseDatabase.Child("Posts").Child(post.RecipientId).PutAsync(post);
         }
-        public Post GetPostById(string postId)
-        {
-            var post = firebaseDatabase.Child("Post").Child(postId).OnceSingleAsync<Post>().Result;
-            return post;
-        }
-
-        public async Task AddCommentAsync(string senderId, string userId, string postId, string text)
+        public static async Task SendCommentAsync(string senderId, Request request)
         {
             var post = await firebaseDatabase
-              .Child("Post")
-              .Child(userId)
-              .Child(postId).OnceSingleAsync<Photo>();
+              .Child("Posts")
+              .Child(request.RecipientId)
+              .Child(request.Id)
+              .OnceSingleAsync<Post>();
 
             Comment comment = new();
             comment.SenderId = senderId;
-            comment.Text = text;
+            comment.Text = request.Text;
             comment.CreateTime = DateTime.UtcNow;
             comment.Id = Guid.NewGuid().ToString("N");
 
             post.Comments.Add(comment.Id, comment);
 
             await firebaseDatabase
-              .Child("Post")
-              .Child(userId)
-              .Child(postId)
+              .Child("Posts")
+              .Child(request.RecipientId)
+              .Child(request.Id)
               .PutAsync(post);
         }
 
-        public async Task LikePostAsync(string senderId, string userId, string postId)
+        public static async Task SetLikeAsync(string senderId, Request request)
         {
             var post = await firebaseDatabase
-              .Child("Post")
-              .Child(userId)
-              .Child(postId).OnceSingleAsync<Post>();
+              .Child("Posts")
+              .Child(request.RecipientId)
+              .Child(request.Id)
+              .OnceSingleAsync<Post>();
 
             if (post.Likes.Contains(senderId)) post.Likes.Remove(senderId);
             else post.Likes.Add(senderId);
 
             await firebaseDatabase
-              .Child("Post")
-              .Child(userId)
-              .Child(postId)
+              .Child("Posts")
+              .Child(request.RecipientId)
+              .Child(request.Id)
               .PutAsync(post);
         }
     }

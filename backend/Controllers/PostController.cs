@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 
 namespace backend.Controllers
 {
@@ -12,76 +9,43 @@ namespace backend.Controllers
     [Route("[controller]")]
     public class PostController : Controller
     {
-        private readonly PostService _postService;
-
-        public PostController(PostService postService)
-        {
-            _postService = postService;
-        }
-
         [Authorize]
-        [HttpGet("GetPost")]
-        public async Task<IActionResult> GetPost()
+        [HttpGet("GetPosts")]
+        public async Task<ActionResult> GetPosts(string userId)
         {
-            (string response, User? user) resultValidate = await ValidationUser();
-            if (resultValidate.user == null || resultValidate.user.Id == null) return Unauthorized(resultValidate.response);
-
-            var post = await PostService.GetPostAsync(resultValidate.user.Id);
-            return Ok(post);
-        }
-
-        [HttpGet("CreatePost")]
-        public IActionResult Create()
-        {
-            return Ok();
+            var result = await PostService.GetPostsAsync(userId);
+            return Ok(result);
         }
 
         [HttpPost("CreatePost")]
-        public async Task<IActionResult> Create(Post model)
+        public async Task<ActionResult> CreatePost([FromForm] Request request)
         {
-            if (ModelState.IsValid)
-            {
-                var putId = await _postService.CreatePutAsync(model);
-                var postId = await _postService.CreatePostAsync(model);
+            if (string.IsNullOrEmpty(request.RecipientId) || (string.IsNullOrEmpty(request.Text) && request.File == null)) return BadRequest("Data in null or empty");
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+            await PostService.CreatePostAsync(userId, request);
 
-                return RedirectToAction("Index", "Home");
-            }
-
-            return Ok(model);
+            return Ok("Ok");
         }
 
-        [HttpGet]
-        public IActionResult Details(string postId)
+        [HttpPost("SendComment")]
+        public async Task<ActionResult> SendComment(Request request)
         {
-            var post = _postService.GetPostById(postId);
-            return Ok(post);
-        }
-
-        [HttpPost("AddComment")]
-        public async Task<IActionResult> AddComment(string senderId, string userId, string postId, string text)
-        {
-            await _postService.AddCommentAsync(senderId, userId, postId, text);
+            if (string.IsNullOrEmpty(request.Id) || string.IsNullOrEmpty(request.RecipientId) || string.IsNullOrEmpty(request.Text)) return BadRequest("Data in null or empty");
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+            await PostService.SendCommentAsync(userId, request);
             return Ok();
         }
 
-        [HttpPost("LikePost")]
-        public async Task<IActionResult> LikePost(string senderId, string userId, string postId)
+        [HttpPost("SetLike")]
+        public async Task<ActionResult> SetLike(Request request)
         {
-            await _postService.LikePostAsync(senderId, userId, postId);
+            if (string.IsNullOrEmpty(request.Id) || string.IsNullOrEmpty(request.RecipientId)) return BadRequest("Data in null or empty");
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+            await PostService.SetLikeAsync(userId, request);
             return Ok();
-        }
-
-        private async Task<(string, User?)> ValidationUser()
-        {
-            Claim? claimId = this.HttpContext.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.PrimarySid);
-            if (claimId == null) return ("User not authorize!", null);
-
-            User? sender = await UserService.FindUserByIdAsync(claimId.Value);
-            if (sender == null) return ("Sender not found!", null);
-
-            sender.LastVisit = DateTime.UtcNow;
-            await UserService.UpdateUserAsync(claimId.Value, sender);
-            return ("", sender);
         }
     }
 }
