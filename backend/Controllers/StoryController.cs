@@ -1,7 +1,6 @@
 ﻿using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
 
 namespace backend.Controllers
 {
@@ -27,32 +26,30 @@ namespace backend.Controllers
         [HttpPost("AddStory")]
         public async Task<ActionResult> AddStory([FromForm]Request request)
         {
-
+            if (request.Files == null || request.Files.Length == 0) return Conflict("No files selected");
             var userId = HttpContext.Items["userId"] as string;
             if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            var story = await StoryService.AddStoryAsync(userId);
+            string storyId = Guid.NewGuid().ToString("N");
 
-            if (request?.Files?.Length > 0)
+            foreach (var file in request.Files)
             {
-                foreach (var file in request.Files)
+                string photoId = Guid.NewGuid().ToString("N");
+                var url = await UserService.SaveFileAsync(file, "Photos", photoId);
+                if (url != null)
                 {
-                    string id = Guid.NewGuid().ToString("N");
-                    var url = await UserService.SaveFileAsync(file, "Photos", id);
-                    if (url != null)
-                    {
-                        Photo photo = new();
-                        photo.Id = id;
-                        photo.Url = url;
-                        photo.StoryId = story.Key;
-                        await GalleryService.UpdatePhotoAsync(userId, id, photo);
-                    }
+                    Photo photo = new();
+                    photo.Id = photoId;
+                    photo.Url = url;
+                    photo.StoryId = storyId;
+                    await GalleryService.UpdatePhotoAsync(userId, photoId, photo);
                 }
             }
-            story.Object.Id = story.Key;
-            story.Object.Name = request?.Name;
-            story.Object.CreatedTime = DateTime.UtcNow;
-            await StoryService.UpdatStoryAsync(userId, story.Key, story.Object);
+            Story story = new();
+            story.Id = storyId;
+            story.Name = request?.Name;
+            story.CreatedTime = DateTime.UtcNow;
+            await StoryService.UpdatStoryAsync(userId, storyId, story);
             return Ok("Ok");
         }
 

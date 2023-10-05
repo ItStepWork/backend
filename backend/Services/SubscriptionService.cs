@@ -258,11 +258,7 @@ namespace backend.Services
                         }
                     }
                 }
-                catch(Exception ex)
-                {
-                    Console.WriteLine("Exception Echo");
-                    Console.WriteLine(ex.ToString());
-                }
+                catch { }
             });
         }
     }

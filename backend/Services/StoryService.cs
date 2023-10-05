@@ -14,7 +14,13 @@ namespace backend.Services
               .Child($"Stories/{userId}")
               .OnceAsync<Story>();
 
-            return result?.Select(x => x.Object);
+            var resultPhotos = await firebaseDatabase
+              .Child($"Photos/{userId}")
+              .OnceAsync<Photo>();
+
+            var photos = resultPhotos?.Select(x => x.Object);
+            var stories = result?.Select(x => x.Object).Select(s => { s.Photos = photos?.Where(p => p.StoryId == s.Id); return s; });
+            return stories;
         }
 
         public static async Task<FirebaseObject<Story>> AddStoryAsync(string userId)

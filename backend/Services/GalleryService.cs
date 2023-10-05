@@ -2,6 +2,7 @@
 using backend.Models.Enums;
 using Firebase.Database;
 using Firebase.Database.Query;
+using Newtonsoft.Json;
 
 namespace backend.Services
 {
@@ -50,8 +51,6 @@ namespace backend.Services
               .OnceAsync<Photo>();
 
             var photos = result?.Where(x => x.Object.StoryId == storyId).Select(x => x.Object);
-            if (photos == null) return new Photo[] { };
-
             return photos;
         }
         public static async Task<Photo?> GetPhotoAsync(string userId, string photoId)

@@ -98,5 +98,16 @@ namespace backend.Controllers
                 await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Posts/{id}", "Update posts");
             }
         }
+        [Authorize]
+        [HttpGet("SubscribeToStoriesUpdates")]
+        public async Task SubscribeToStoriesUpdates(string id)
+        {
+            var user = await UserService.GetUserAsync(id);
+            if (user == null) HttpContext.Response.StatusCode = 400;
+            else
+            {
+                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Stories/{id}", "Update stories");
+            }
+        }
     }
 }
