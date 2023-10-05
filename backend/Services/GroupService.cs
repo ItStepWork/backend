@@ -11,10 +11,10 @@ namespace backend.Services
     {
         private static readonly FirebaseClient firebaseDatabase = new FirebaseClient("https://database-50f39-default-rtdb.europe-west1.firebasedatabase.app/");
         private static readonly FirebaseStorage firebaseStorage = new FirebaseStorage("database-50f39.appspot.com");
-        public static async Task<(string response, string ok)> AddGroupAsync(Request groupRequest, string userId)
+        public static async Task<(string response, Group? group)> AddGroupAsync(Request groupRequest, string userId)
         {
             UserBase? user = await UserService.GetUserAsync(userId);
-            if (user == null) return ("Admin user not found", "");
+            if (user == null) return ("Admin user not found", null);
             Group group = new Group();
             group.Status = Status.Active;
             group.CreatedTime = DateTime.UtcNow;
@@ -27,13 +27,13 @@ namespace backend.Services
             var result = await firebaseDatabase
               .Child("Groups")
               .PostAsync(group);
-            if (result == null) return ("Group not added", "");
+            if (result == null) return ("Group not added", null);
             group.Id = result.Key;
             var url = await UserService.SaveFileAsync(groupRequest.File, "Groups", group.Id);
-            if (url == null) return ("Avatar not saved", "");
+            if (url == null) return ("Avatar not saved", null);
             group.PictureUrl = url;
             await UpdateGroupAsync(group);
-            return ("", "Group added");
+            return ("", group);
         }
         public static async Task UpdateGroupAsync(Group group)
         {

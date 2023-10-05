@@ -2,6 +2,7 @@
 using Firebase.Database.Query;
 using backend.Models;
 using Newtonsoft.Json;
+using backend.Models.Enums;
 
 namespace backend.Services
 {
@@ -14,7 +15,7 @@ namespace backend.Services
               .Child($"Posts/{userId}")
               .OnceAsync<Post>();
 
-            return result?.Select(x => x.Object);
+            return result?.Select(x => x.Object).Where(p=>p.Status == Status.Active).OrderByDescending(p=>p.CreateTime);
         }
         public static async Task<Post?> GetPostAsync(string userId, string postId)
         {
@@ -33,6 +34,7 @@ namespace backend.Services
                 SenderId = senderId,
                 RecipientId = request.RecipientId,
                 CreateTime = DateTime.UtcNow,
+                Status = Status.Active,
             };
 
             if (request.File != null)
@@ -89,7 +91,8 @@ namespace backend.Services
               .Child("Posts")
               .Child(senderId)
               .Child(postId)
-              .DeleteAsync();
+              .Child("Status")
+              .PutAsync<int>((int)Status.Deleted);
         }
     }
 }

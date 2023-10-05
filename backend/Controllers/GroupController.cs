@@ -17,8 +17,14 @@ namespace backend.Controllers
             if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
             var result = await GroupService.AddGroupAsync(groupRequest, userId);
-            if(result.ok == "")return Conflict(result.response);
-            return Ok(result.ok);
+            if(result.group == null)return Conflict(result.response);
+
+            Request request = new();
+            request.RecipientId = result.group.Id;
+            request.Text = $"Group {result.group.Name} created";
+            await PostService.CreatePostAsync(userId, request);
+
+            return Ok("Group created");
         }
         [HttpDelete("DeleteGroup")]
         public async Task<ActionResult> DeleteGroup(string id)

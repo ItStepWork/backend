@@ -92,7 +92,8 @@ namespace backend.Controllers
         public async Task SubscribeToPostsUpdates(string id)
         {
             var user = await UserService.GetUserAsync(id);
-            if (user == null) HttpContext.Response.StatusCode = 400;
+            var group = await GroupService.GetGroupAsync(id);
+            if (user == null && group == null) HttpContext.Response.StatusCode = 400;
             else
             {
                 await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Posts/{id}", "Update posts");

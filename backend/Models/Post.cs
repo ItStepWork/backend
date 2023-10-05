@@ -7,5 +7,6 @@ namespace backend.Models
         public List<string> Likes { get; set; } = new();
         public Dictionary<string, Comment> Comments { get; set; } = new();
         public string? ImgUrl { get; set; }
+        public Status? Status { get; set; }
     }
 }
