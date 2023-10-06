@@ -110,5 +110,27 @@ namespace backend.Controllers
                 await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Stories/{id}", "Update stories");
             }
         }
+        [Authorize]
+        [HttpGet("SubscribeToAlbumsUpdates")]
+        public async Task SubscribeToAlbumsUpdates(string id)
+        {
+            var user = await UserService.GetUserAsync(id);
+            if (user == null) HttpContext.Response.StatusCode = 400;
+            else
+            {
+                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Albums/{id}", "Update albums");
+            }
+        }
+        [Authorize]
+        [HttpGet("SubscribeToPhotosUpdates")]
+        public async Task SubscribeToPhotosUpdates(string id)
+        {
+            var user = await UserService.GetUserAsync(id);
+            if (user == null) HttpContext.Response.StatusCode = 400;
+            else
+            {
+                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Photos/{id}", "Update photos");
+            }
+        }
     }
 }

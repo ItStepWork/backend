@@ -1,6 +1,7 @@
 ﻿using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Utilities.Collections;
 using System.Security.Claims;
 
 namespace backend.Controllers
@@ -114,33 +115,31 @@ namespace backend.Controllers
         [HttpPost("AddAlbum")]
         public async Task<ActionResult> AddAlbum([FromForm]Request request)
         {
-            if (string.IsNullOrEmpty(request.Name)) return BadRequest("Name is null or empty");
-
+            if (string.IsNullOrEmpty(request.Name)) return Conflict("Name is null or empty");
+            if (request.Files == null || request.Files.Length == 0) return Conflict("No files selected");
             var userId = HttpContext.Items["userId"] as string;
             if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
 
-            var album = await GalleryService.AddAlbumAsync(userId);
+            string albumId = Guid.NewGuid().ToString("N");
 
-            if(request?.Files?.Length > 0)
+            foreach (var file in request.Files)
             {
-                foreach (var file in request.Files)
+                string photoId = Guid.NewGuid().ToString("N");
+                var url = await UserService.SaveFileAsync(file, "Photos", photoId);
+                if (url != null)
                 {
-                    string id = Guid.NewGuid().ToString("N");
-                    var url = await UserService.SaveFileAsync(file, "Photos", id);
-                    if (url != null)
-                    {
-                        Photo photo = new();
-                        photo.Id = id;
-                        photo.Url = url;
-                        photo.AlbumId = album.Key;
-                        await GalleryService.UpdatePhotoAsync(userId, id, photo);
-                    }
+                    Photo photo = new();
+                    photo.Id = photoId;
+                    photo.Url = url;
+                    photo.AlbumId = albumId;
+                    await GalleryService.UpdatePhotoAsync(userId, photoId, photo);
                 }
             }
-
-            album.Object.Id = album.Key;
-            album.Object.Name = request.Name;
-            await GalleryService.UpdateAlbumAsync(userId, album.Key, album.Object);
+            Album album = new();
+            album.Id = albumId;
+            album.Name = request.Name;
+            album.CreatedTime = DateTime.UtcNow;
+            await GalleryService.UpdateAlbumAsync(userId, albumId, album);
             return Ok("Ok");
         }
         [HttpDelete("RemoveAlbum")]

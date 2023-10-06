@@ -26,6 +26,7 @@ namespace backend.Controllers
         [HttpPost("AddStory")]
         public async Task<ActionResult> AddStory([FromForm]Request request)
         {
+            if (string.IsNullOrEmpty(request.Name)) return Conflict("Name is null or empty");
             if (request.Files == null || request.Files.Length == 0) return Conflict("No files selected");
             var userId = HttpContext.Items["userId"] as string;
             if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
@@ -47,7 +48,7 @@ namespace backend.Controllers
             }
             Story story = new();
             story.Id = storyId;
-            story.Name = request?.Name;
+            story.Name = request.Name;
             story.CreatedTime = DateTime.UtcNow;
             await StoryService.UpdatStoryAsync(userId, storyId, story);
             return Ok("Ok");
