@@ -16,6 +16,12 @@ namespace backend.Services
               .Child("Users")
               .Child(userId).OnceSingleAsync<Friend>();
 
+            if (user != null && user.Id != null)
+            {
+                var lastVisit = await UserService.GetUserLastVisitAsync(user.Id);
+                if (lastVisit != null) user.LastVisit = DateTime.Parse(lastVisit);
+            }
+
             return user;
         }
         public static async Task<bool> AddFriendAsync(string senderId, string recipientId)
@@ -93,8 +99,9 @@ namespace backend.Services
               .Child("Users")
               .OnceAsync<Friend>();
 
-            return users?
-              .Select(x => x.Object);
+            var lastVisits = await UserService.GetUsersLastVisitsAsync();
+
+            return users?.Select(x => x.Object).Select(u => { if (u.Id != null && lastVisits.ContainsKey(u.Id)) u.LastVisit = DateTime.Parse(lastVisits[u.Id]); return u; });
         }
         public static async Task<IEnumerable<FriendRequest>?> GetFriendsAsync(string userId)
         {

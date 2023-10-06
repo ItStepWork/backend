@@ -3,10 +3,7 @@ using backend.Models.Enums;
 using Firebase.Database;
 using Firebase.Database.Query;
 using Firebase.Storage;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -49,6 +46,12 @@ namespace backend.Services
               .Child("Users")
               .Child(userId).OnceSingleAsync<UserBase>();
 
+            if(user != null)
+            {
+                var lastVisit = await GetUserLastVisitAsync(userId);
+                if (lastVisit != null) user.LastVisit = DateTime.Parse(lastVisit);
+            }
+
             return user;
         }
         public static async Task<IEnumerable<UserBase>?> GetUsersAsync()
@@ -57,8 +60,9 @@ namespace backend.Services
               .Child("Users")
               .OnceAsync<UserBase>();
 
-            return users?
-              .Select(x => x.Object);
+            var lastVisits = await GetUsersLastVisitsAsync();
+
+            return users?.Select(x => x.Object).Select(u => { if (u.Id != null && lastVisits.ContainsKey(u.Id)) u.LastVisit = DateTime.Parse(lastVisits[u.Id]); return u; });
         }
         public static async Task<IEnumerable<UserBase>?> GetUsersAsync(string userId)
         {
@@ -66,8 +70,9 @@ namespace backend.Services
               .Child("Users")
               .OnceAsync<UserBase>();
 
-            return users?
-              .Where(u=>u.Key != userId).Select(x => x.Object);
+            var lastVisits = await GetUsersLastVisitsAsync();
+
+            return users?.Where(u=>u.Key != userId).Select(x => x.Object).Select(u => { if (u.Id != null && lastVisits.ContainsKey(u.Id)) u.LastVisit = DateTime.Parse(lastVisits[u.Id]); return u; });
         }
         public static async Task<List<UserBase>?> GetUsersAsync(string[] users)
         {
@@ -75,8 +80,9 @@ namespace backend.Services
               .Child("Users")
               .OnceAsync<UserBase>();
 
-            return result?
-              .Where(u => users.Contains(u.Key)).Select(x => x.Object).ToList();
+            var lastVisits = await GetUsersLastVisitsAsync();
+
+            return result?.Where(u => users.Contains(u.Key)).Select(x => x.Object).Select(u => { if (u.Id != null && lastVisits.ContainsKey(u.Id)) u.LastVisit = DateTime.Parse(lastVisits[u.Id]); return u; }).ToList();
         }
         public static async Task UpdateUserAsync(string userId, User user)
         {
@@ -144,9 +150,8 @@ namespace backend.Services
         public static async Task UpdateUserLastVisitAsync(string userId)
         {
             await firebaseDatabase
-              .Child("Users")
+              .Child("LastVisits")
               .Child(userId)
-              .Child("LastVisit")
               .PutAsync<string>(DateTime.UtcNow.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.fffffffK"));
         }
         public static async Task RemoveUserAsync(string userId)
@@ -162,8 +167,13 @@ namespace backend.Services
               .Child("Users")
               .OnceAsync<User>();
 
-            return users?
-              .FirstOrDefault(user => user.Object.Email == email);
+            var user = users?.FirstOrDefault(user => user.Object.Email == email);
+            if (user != null && user.Object.Id != null)
+            {
+                var lastVisit = await GetUserLastVisitAsync(user.Object.Id);
+                if (lastVisit != null) user.Object.LastVisit = DateTime.Parse(lastVisit);
+            }
+            return user;
         }
         public static async Task<User?> FindUserByIdAsync(string userId)
         {
@@ -171,6 +181,11 @@ namespace backend.Services
               .Child("Users")
               .Child(userId).OnceSingleAsync<User>();
 
+            if (user != null && user.Id != null)
+            {
+                var lastVisit = await GetUserLastVisitAsync(user.Id);
+                if (lastVisit != null) user.LastVisit = DateTime.Parse(lastVisit);
+            }
             return user;
         }
 
@@ -189,6 +204,18 @@ namespace backend.Services
                  .Child(child)
                  .Child(name + ".png")
                  .DeleteAsync();
+        }
+        public static async Task<Dictionary<string, string>> GetUsersLastVisitsAsync()
+        {
+            var lastVisits = await firebaseDatabase.Child("LastVisits").OnceSingleAsync<Dictionary<string, string>>();
+            return lastVisits;
+        }
+        public static async Task<string?> GetUserLastVisitAsync(string id)
+        {
+            var lastVisit = await firebaseDatabase
+                  .Child("LastVisits")
+                  .Child(id).OnceSingleAsync<string>();
+            return lastVisit;
         }
     }
 }

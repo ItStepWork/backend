@@ -28,7 +28,17 @@ namespace backend.Controllers
         [HttpGet("SubscribeToUserUpdates")]
         public async Task SubscribeToUserUpdates(string id)
         {
-            await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Users/{id}", "Update user");
+            var user = await UserService.GetUserAsync(id);
+            if (user == null)
+            {
+                HttpContext.Response.StatusCode = 404;
+                var buffer = Encoding.UTF8.GetBytes("User not found");
+                await HttpContext.Response.Body.WriteAsync(buffer, 0, buffer.Length);
+            }
+            else
+            {
+                await SubscriptionService.SubscribeUpdatesAsync(this.HttpContext, $"Users/{id}", "Update user");
+            }
         }
         [HttpGet("SubscribeToMessagesUpdates")]
         public async Task SubscribeToMessagesUpdates()
@@ -56,7 +66,7 @@ namespace backend.Controllers
             Group? group = await GroupService.GetGroupAsync(id);
             if (group == null)
             {
-                HttpContext.Response.StatusCode = 400;
+                HttpContext.Response.StatusCode = 404;
                 var buffer = Encoding.UTF8.GetBytes("Group not found");
                 await HttpContext.Response.Body.WriteAsync(buffer, 0, buffer.Length);
             }
@@ -117,7 +127,7 @@ namespace backend.Controllers
             var group = await GroupService.GetGroupAsync(id);
             if (user == null && group == null)
             {
-                HttpContext.Response.StatusCode = 400;
+                HttpContext.Response.StatusCode = 404;
                 var buffer = Encoding.UTF8.GetBytes("ID not found");
                 await HttpContext.Response.Body.WriteAsync(buffer, 0, buffer.Length);
             }
@@ -132,7 +142,7 @@ namespace backend.Controllers
             var user = await UserService.GetUserAsync(id);
             if (user == null)
             {
-                HttpContext.Response.StatusCode = 400;
+                HttpContext.Response.StatusCode = 404;
                 var buffer = Encoding.UTF8.GetBytes("User not found");
                 await HttpContext.Response.Body.WriteAsync(buffer, 0, buffer.Length);
             }
@@ -147,7 +157,7 @@ namespace backend.Controllers
             var user = await UserService.GetUserAsync(id);
             if (user == null)
             {
-                HttpContext.Response.StatusCode = 400;
+                HttpContext.Response.StatusCode = 404;
                 var buffer = Encoding.UTF8.GetBytes("User not found");
                 await HttpContext.Response.Body.WriteAsync(buffer, 0, buffer.Length);
             }
@@ -162,7 +172,7 @@ namespace backend.Controllers
             var user = await UserService.GetUserAsync(id);
             if (user == null)
             {
-                HttpContext.Response.StatusCode = 400;
+                HttpContext.Response.StatusCode = 404;
                 var buffer = Encoding.UTF8.GetBytes("User not found");
                 await HttpContext.Response.Body.WriteAsync(buffer, 0, buffer.Length);
             }
