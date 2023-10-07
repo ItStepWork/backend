@@ -194,7 +194,13 @@ namespace backend.Services
                 return list;
             }
         }
-
+        public static async Task<List<string>?> GetConfirmedFriends(string userId)
+        {
+            var friends = await firebaseDatabase
+              .Child($"Friends/{userId}")
+              .OnceAsync<FriendRequest>();
+            return friends.Where(f => f.Object.IsConfirmed == true).Select(f => f.Key).ToList();
+        }
         public static async Task<IEnumerable<UserBase>> GetConfirmedFriends(string senderId, string userId)
         {
             var friends = await firebaseDatabase
