@@ -23,7 +23,7 @@ namespace backend.Services
                 .OnceAsync<IDictionary<string, Message>>();
 
             var users = await UserService.GetUsersAsync(userId);
-            var result = dialogs.Select(x => new Dialog() { User = users?.FirstOrDefault(u => u.Id == x.Key), LastMessage = x.Object.LastOrDefault().Value });
+            var result = dialogs.Select(x => new Dialog() { User = users?.FirstOrDefault(u => u.Id == x.Key), LastMessage = x.Object.LastOrDefault().Value, UnreadMessages = x.Object.Where(m=>m.Value.SenderId != userId && m.Value.Status == MessageStatus.Unread).Count() });
             return result;
         }
         public static async Task RemoveDialogAsync(string userId, string dialogId)
