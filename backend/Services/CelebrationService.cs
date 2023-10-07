@@ -107,7 +107,7 @@ namespace backend.Services
                 .OnceAsync<FriendRequest>();
             var friends = await FriendService.GetConfirmedFriends(userId, userId);
             var friendIds = friends.Select(x => x.Id);
-            var myFriendsEvents = events.Where(item => friendIds.Contains(item.UserId)).OrderBy(x => x.Date);
+            var myFriendsEvents = events.Where(item => friendIds.Contains(item.UserId)).Where(i=>i.Date >= DateTime.Now.Date).OrderBy(x => x.Date);
             var final = myFriendsEvents.Select(x => { x.User = friends.FirstOrDefault(i => i.Id == x.UserId); return x; });
             return final;
         }
