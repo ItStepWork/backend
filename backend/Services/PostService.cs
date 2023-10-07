@@ -3,6 +3,7 @@ using Firebase.Database.Query;
 using backend.Models;
 using Newtonsoft.Json;
 using backend.Models.Enums;
+using backend.Controllers;
 
 namespace backend.Services
 {
@@ -16,6 +17,25 @@ namespace backend.Services
               .OnceAsync<Post>();
 
             return result?.Select(x => x.Object).Where(p=>p.Status == Status.Active).OrderByDescending(p=>p.CreateTime);
+        }
+        public static async Task<IEnumerable<Post>?> GetPostsAsync(string senderId, string userId)
+        {
+            if(senderId == userId)
+            {
+                var friends = await FriendService.GetConfirmedFriends(userId);
+                if(friends != null)
+                {
+                    friends.Add(userId);
+                    var posts = await firebaseDatabase
+                      .Child($"Posts")
+                      .OnceAsync<Dictionary<string, Post>>();
+
+                    var result = posts.Where(u => friends.Contains(u.Key)).SelectMany(u => u.Object.Values.ToList()).Where(p => p.Status == Status.Active).OrderByDescending(p => p.CreateTime);
+                    return result;
+                }
+                else return await GetPostsAsync(userId);
+            }
+            else return await GetPostsAsync(userId);
         }
         public static async Task<Post?> GetPostAsync(string userId, string postId)
         {

@@ -13,7 +13,9 @@ namespace backend.Controllers
         [HttpGet("GetPosts")]
         public async Task<ActionResult> GetPosts(string id)
         {
-            var result = await PostService.GetPostsAsync(id);
+            var userId = HttpContext.Items["userId"] as string;
+            if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
+            var result = await PostService.GetPostsAsync(userId, id);
             return Ok(result);
         }
 
