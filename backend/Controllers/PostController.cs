@@ -2,6 +2,7 @@
 using backend.Models;
 using backend.Services;
 using Microsoft.AspNetCore.Authorization;
+using backend.Models.Enums;
 
 namespace backend.Controllers
 {
@@ -61,7 +62,7 @@ namespace backend.Controllers
 
             if (userId == request.UserId)
             {
-                await PostService.RemovePostAsync(request.UserId, request.Id);
+                await PostService.UpdatePostStatusAsync(request.UserId, request.Id, Status.Deleted);
                 return Ok("Ok");
             }
             else
@@ -72,7 +73,7 @@ namespace backend.Controllers
                 {
                     if(group.AdminId == userId)
                     {
-                        await PostService.RemovePostAsync(request.UserId, request.Id);
+                        await PostService.UpdatePostStatusAsync(request.UserId, request.Id, Status.Deleted);
                         return Ok("Ok");
                     }
                     else return Conflict("No access");

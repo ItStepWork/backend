@@ -35,8 +35,9 @@ namespace backend.Middleware
                     else if (path.Value == "/Admin/UpdateUserBlockingTime") role = Role.Admin;
                     else if (path.Value == "/Admin/UpdateGroupStatus") role = Role.Admin;
                     else if (path.Value == "/Admin/UpdateGroupBlockingTime") role = Role.Admin;
+                    else if (path.Value == "/Admin/UpdatePostStatus") role = Role.Admin;
 
-                    if(role != null)
+                    if (role != null)
                     {
                         var (status, response, user) = await ValidationService.ValidationAdmin(context, (Role)role);
                         if (user == null || string.IsNullOrEmpty(user.Id))

@@ -91,10 +91,13 @@ namespace backend.Services
 
             var users = await UserService.GetUsersAsync();
             var groups = await GroupService.GetGroupsAsync();
+            var posts = await PostService.GetPostsAsync();
+
             return result?.Select(x => x.Object).OrderByDescending(m => m.CreateTime).Select(c => { 
                 c.Sender = users?.FirstOrDefault(u => u.Id == c.SenderId);
                 c.User = users?.FirstOrDefault(u => u.Id == c.UserId);
                 c.Group = groups?.FirstOrDefault(u => u.Id == c.GroupId);
+                c.Post = posts?.FirstOrDefault(p => p.Id == c.PostId);
                 return c;
             });
         }

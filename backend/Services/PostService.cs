@@ -37,6 +37,15 @@ namespace backend.Services
             }
             else return await GetPostsAsync(userId);
         }
+        public static async Task<IEnumerable<Post>?> GetPostsAsync()
+        {
+            var posts = await firebaseDatabase
+              .Child($"Posts")
+              .OnceAsync<Dictionary<string, Post>>();
+
+            var result = posts.SelectMany(u => u.Object.Values.ToList());
+            return result;
+        }
         public static async Task<Post?> GetPostAsync(string userId, string postId)
         {
             var result = await firebaseDatabase
@@ -105,14 +114,14 @@ namespace backend.Services
               .Child(request.Id)
               .PutAsync(post);
         }
-        public static async Task RemovePostAsync(string senderId, string postId)
+        public static async Task UpdatePostStatusAsync(string recipientId, string postId, Status status)
         {
             await firebaseDatabase
               .Child("Posts")
-              .Child(senderId)
+              .Child(recipientId)
               .Child(postId)
               .Child("Status")
-              .PutAsync<int>((int)Status.Deleted);
+              .PutAsync<int>((int)status);
         }
     }
 }

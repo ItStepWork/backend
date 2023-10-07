@@ -7,9 +7,11 @@ namespace backend.Models
         public string? Id { get; set; }
         public string? UserId { get; set; }
         public string? RecipientId { get; set; }
+        public string? SenderId { get; set; }
         public string? Email { get; set; }
         public string? GroupId { get; set; }
         public string? PhotoId { get; set; }
+        public string? PostId { get; set; }
         public string? PhotoUrl { get; set; }
         public string? AlbumId { get; set; }
         public string? Text { get; set; }
