@@ -24,10 +24,31 @@ namespace backend.Controllers
         public async Task<ActionResult> CreatePost([FromForm] Request request)
         {
             if (string.IsNullOrEmpty(request.Text) && request.File == null) return BadRequest("Data in null or empty");
+            if (string.IsNullOrEmpty(request.RecipientId) && string.IsNullOrEmpty(request.GroupId)) return Conflict("Recipient is null");
             var userId = HttpContext.Items["userId"] as string;
             if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
-            await PostService.CreatePostAsync(userId, request);
-            return Ok("Ok");
+
+            if (!string.IsNullOrEmpty(request.RecipientId))
+            {
+                var friends = await FriendService.GetConfirmedFriends(userId);
+                if (friends != null && friends.Contains(request.RecipientId))
+                {
+                    await PostService.CreatePostAsync(userId, request);
+                    return Ok("Ok");
+                }
+                else return Conflict("No access");
+            }
+            else if (!string.IsNullOrEmpty(request.GroupId))
+            {
+                var group = await GroupService.GetGroupAsync(request.GroupId);
+                if (group != null && group.Users.ContainsKey(userId) && group.Users[userId])
+                {
+                    await PostService.CreatePostAsync(userId, request);
+                    return Ok("Ok");
+                }
+                else return Conflict("No access");
+            }
+            else return BadRequest("Error request");
         }
 
         [HttpPost("SendComment")]
