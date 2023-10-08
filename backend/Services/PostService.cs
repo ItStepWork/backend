@@ -29,14 +29,16 @@ namespace backend.Services
             if(senderId == userId)
             {
                 var friends = await FriendService.GetConfirmedFriends(userId);
+                var allGroups = await GroupService.GetGroupsAsync(); 
                 if(friends != null)
                 {
                     friends.Add(userId);
                     var posts = await firebaseDatabase
                       .Child($"Posts")
                       .OnceAsync<Dictionary<string, Post>>();
-
-                    var result = posts.Where(u => friends.Contains(u.Key)).SelectMany(u => u.Object.Values.ToList()).Where(p => p.Status == Status.Active).OrderByDescending(p => p.CreateTime);
+                    var userGroups = allGroups?.Where(g => g.Users.ContainsKey(userId) && g.Users[userId] == true).Select(g=>g.Id).ToList();
+                    if (userGroups == null) userGroups = new();
+                    var result = posts.Where(u => friends.Contains(u.Key) || userGroups.Contains(u.Key)).SelectMany(u => u.Object.Values.ToList()).Where(p => p.Status == Status.Active).OrderByDescending(p => p.CreateTime);
                     var users = await UserService.GetUsersAsync();
                     var groups = await GroupService.GetGroupsAsync();
                     var finish = result.Select(p => {
