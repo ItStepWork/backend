@@ -47,25 +47,23 @@ namespace backend.Services
             await firebaseDatabase
               .Child("Groups")
               .Child(groupId)
-              .DeleteAsync();
-            await UserService.RemoveFileAsync("Groups", groupId);
-            var photos = await GalleryService.GetPhotosAsync(groupId);
-            await GalleryService.RemovePhotosFolderAsync(groupId);
-            foreach (var item in photos) await UserService.RemoveFileAsync("Groups", item.Id);
+              .Child("Status")
+              .PutAsync<int>((int)Status.Deleted);
         }
         public static async Task<IEnumerable<Group>?> GetGroupsAsync()
         {
             var groups = await firebaseDatabase
               .Child("Groups")
               .OnceAsync<Group>();
-            return groups?.Select(x => x.Object);
+            return groups?.Select(x => x.Object).Where(g=>g.Status == Status.Active);
         }
         public static async Task<Group?> GetGroupAsync(string id)
         {
             var group = await firebaseDatabase
               .Child($"Groups")
               .Child(id).OnceSingleAsync<Group>();
-            return group;
+            if (group?.Status == Status.Active) return group;
+            else return null;
         }
 
         public static async Task RemuveUserFromGroupAsync(string groupId, string userId)

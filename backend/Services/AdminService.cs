@@ -109,5 +109,12 @@ namespace backend.Services
               .Child("Status")
               .PutAsync<int>((int)MessageStatus.Read);
         }
+        public static async Task<IEnumerable<Group>?> GetGroupsAsync()
+        {
+            var groups = await firebaseDatabase
+              .Child("Groups")
+              .OnceAsync<Group>();
+            return groups?.Select(x => x.Object);
+        }
     }
 }

@@ -20,7 +20,7 @@ namespace backend.Controllers
         [HttpGet("GetGroups")]
         public async Task<ActionResult> GetGroups()
         {
-            var result = await GroupService.GetGroupsAsync();
+            var result = await AdminService.GetGroupsAsync();
             return Ok(result);
         }
         [HttpGet("GetAllActivity")]
