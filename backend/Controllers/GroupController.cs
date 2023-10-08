@@ -20,7 +20,7 @@ namespace backend.Controllers
             if(result.group == null)return Conflict(result.response);
 
             Request request = new();
-            request.RecipientId = result.group.Id;
+            request.GroupId = result.group.Id;
             request.Text = $"Group {result.group.Name} created";
             await PostService.CreatePostAsync(userId, request);
 

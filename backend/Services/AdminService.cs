@@ -91,7 +91,7 @@ namespace backend.Services
 
             var users = await UserService.GetUsersAsync();
             var groups = await GroupService.GetGroupsAsync();
-            var posts = await PostService.GetPostsAsync();
+            var posts = await GetPostsAsync();
 
             return result?.Select(x => x.Object).OrderByDescending(m => m.CreateTime).Select(c => { 
                 c.Sender = users?.FirstOrDefault(u => u.Id == c.SenderId);
@@ -115,6 +115,15 @@ namespace backend.Services
               .Child("Groups")
               .OnceAsync<Group>();
             return groups?.Select(x => x.Object);
+        }
+        public static async Task<IEnumerable<Post>?> GetPostsAsync()
+        {
+            var posts = await firebaseDatabase
+              .Child($"Posts")
+              .OnceAsync<Dictionary<string, Post>>();
+
+            var result = posts.SelectMany(u => u.Object.Values.ToList());
+            return result;
         }
     }
 }

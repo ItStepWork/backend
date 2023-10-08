@@ -23,7 +23,7 @@ namespace backend.Controllers
         [HttpPost("CreatePost")]
         public async Task<ActionResult> CreatePost([FromForm] Request request)
         {
-            if (string.IsNullOrEmpty(request.RecipientId) || (string.IsNullOrEmpty(request.Text) && request.File == null)) return BadRequest("Data in null or empty");
+            if (string.IsNullOrEmpty(request.Text) && request.File == null) return BadRequest("Data in null or empty");
             var userId = HttpContext.Items["userId"] as string;
             if (string.IsNullOrEmpty(userId)) return Conflict("User id is null");
             await PostService.CreatePostAsync(userId, request);

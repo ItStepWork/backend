@@ -15,8 +15,14 @@ namespace backend.Services
             var result = await firebaseDatabase
               .Child($"Posts/{userId}")
               .OnceAsync<Post>();
-
-            return result?.Select(x => x.Object).Where(p=>p.Status == Status.Active).OrderByDescending(p=>p.CreateTime);
+            var posts = result?.Select(x => x.Object).Where(p => p.Status == Status.Active).OrderByDescending(p => p.CreateTime);
+            var users = await UserService.GetUsersAsync();
+            var finish = posts?.Select(p => {
+                p.Sender = users?.FirstOrDefault(u => u.Id == p.SenderId);
+                if (p.RecipientId != null) p.Recipient = users?.FirstOrDefault(u => u.Id == p.RecipientId);
+                return p;
+            });
+            return finish;
         }
         public static async Task<IEnumerable<Post>?> GetPostsAsync(string senderId, string userId)
         {
@@ -31,20 +37,19 @@ namespace backend.Services
                       .OnceAsync<Dictionary<string, Post>>();
 
                     var result = posts.Where(u => friends.Contains(u.Key)).SelectMany(u => u.Object.Values.ToList()).Where(p => p.Status == Status.Active).OrderByDescending(p => p.CreateTime);
-                    return result;
+                    var users = await UserService.GetUsersAsync();
+                    var groups = await GroupService.GetGroupsAsync();
+                    var finish = result.Select(p => {
+                        p.Sender = users?.FirstOrDefault(u => u.Id == p.SenderId);  
+                        if(p.RecipientId != null) p.Recipient = users?.FirstOrDefault(u => u.Id == p.RecipientId);
+                        if (p.GroupId != null) p.Group = groups?.FirstOrDefault(g => g.Id == p.GroupId);
+                        return p;
+                    });
+                    return finish;
                 }
                 else return await GetPostsAsync(userId);
             }
             else return await GetPostsAsync(userId);
-        }
-        public static async Task<IEnumerable<Post>?> GetPostsAsync()
-        {
-            var posts = await firebaseDatabase
-              .Child($"Posts")
-              .OnceAsync<Dictionary<string, Post>>();
-
-            var result = posts.SelectMany(u => u.Object.Values.ToList());
-            return result;
         }
         public static async Task<Post?> GetPostAsync(string userId, string postId)
         {
@@ -56,12 +61,15 @@ namespace backend.Services
         }
         public static async Task CreatePostAsync(string senderId, Request request)
         {
+            string? id = string.IsNullOrEmpty(request.RecipientId) ? request.GroupId : request.RecipientId;
+
             var post = new Post
             {
                 Id = Guid.NewGuid().ToString("N"),
                 Text = request.Text,
                 SenderId = senderId,
                 RecipientId = request.RecipientId,
+                GroupId = request.GroupId,
                 CreateTime = DateTime.UtcNow,
                 Status = Status.Active,
             };
@@ -72,7 +80,7 @@ namespace backend.Services
                 post.ImgUrl = imgUrl;
             }
 
-            await firebaseDatabase.Child("Posts").Child(post.RecipientId).Child(post.Id).PutAsync(post);
+            await firebaseDatabase.Child("Posts").Child(id).Child(post.Id).PutAsync(post);
         }
         public static async Task SendCommentAsync(string senderId, Request request)
         {
