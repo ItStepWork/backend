@@ -31,7 +31,7 @@ namespace backend.Controllers
             if (!string.IsNullOrEmpty(request.RecipientId))
             {
                 var friends = await FriendService.GetConfirmedFriends(userId);
-                if (friends != null && friends.Contains(request.RecipientId))
+                if (friends != null && friends.Contains(request.RecipientId) || request.RecipientId == userId)
                 {
                     await PostService.CreatePostAsync(userId, request);
                     return Ok("Ok");
